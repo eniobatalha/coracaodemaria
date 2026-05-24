@@ -68,11 +68,11 @@ export function HeroSection() {
             </a>
 
             <a
-              href="#portal-aluno-em-desenvolvimento"
+              href="#modulo-financeiro-em-desenvolvimento"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#071D5B] px-7 py-4 text-base font-black text-white shadow-xl transition hover:scale-105"
             >
               <WalletCards size={20} />
-              2ª Via e Pagamentos
+              Acessar Portal Financeiro
             </a>
           </div>
 
