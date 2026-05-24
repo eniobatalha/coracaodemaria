@@ -24,9 +24,7 @@ export function ContactSection() {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a
-                  href={`https://wa.me/${schoolInfo.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="#escolher-unidade-whatsapp"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E4252A] px-7 py-4 text-base font-black text-white transition hover:scale-105"
                 >
                   <MessageCircle size={22} />

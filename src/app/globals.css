@@ -7,8 +7,6 @@
   --color-sky: #eafbff;
   --color-red: #e4252a;
   --color-orange: #ff7a1c;
-  --color-cream: #fffbea;
-  --color-cream-strong: #fdfbd4;
 }
 
 * {
@@ -22,7 +20,7 @@ html {
 
 body {
   min-height: 100vh;
-  background: #fffbea;
+  background: #ffffff;
   color: #071d5b;
 }
 

@@ -1,36 +1,55 @@
-import { BookOpen, Bot, HeartHandshake, Lightbulb } from "lucide-react"
+import {
+  Baby,
+  BookOpen,
+  GraduationCap,
+  HeartHandshake,
+  Music,
+  School,
+} from "lucide-react"
 import { Container } from "@/components/ui/Container"
 
 const differentials = [
   {
-    title: "Robótica Aplicada",
+    title: "Educação desde o maternal",
     description:
-      "Tecnologia, criatividade e resolução de problemas desde os primeiros anos escolares.",
-    icon: Bot,
+      "Acompanhamento cuidadoso desde os primeiros anos, com acolhimento, rotina, socialização e desenvolvimento integral.",
+    icon: Baby,
   },
   {
-    title: "Ensino Contextualizado",
+    title: "Unidade Gaibu até o 5º ano",
     description:
-      "Aprendizagem conectada ao cotidiano do aluno, com sentido, prática e participação.",
+      "Atendimento escolar do maternal ao 5º ano, com ambiente próximo, familiar e adequado à formação das crianças.",
+    icon: School,
+  },
+  {
+    title: "Unidade Cabo até o Ensino Médio",
+    description:
+      "Formação do maternal ao 3º ano do Ensino Médio, acompanhando o aluno em uma trajetória escolar completa.",
+    icon: GraduationCap,
+  },
+  {
+    title: "Balé nas duas unidades",
+    description:
+      "Atividade que contribui para expressão corporal, disciplina, sensibilidade artística, postura e confiança.",
+    icon: Music,
+  },
+  {
+    title: "Biblioteca e incentivo à leitura",
+    description:
+      "Contato com livros, histórias e práticas de leitura que fortalecem imaginação, vocabulário e aprendizagem.",
     icon: BookOpen,
   },
   {
-    title: "Projetos Educacionais",
+    title: "Acolhimento e valores",
     description:
-      "Atividades que desenvolvem autonomia, expressão, raciocínio e convivência.",
-    icon: Lightbulb,
-  },
-  {
-    title: "Acolhimento Familiar",
-    description:
-      "Ambiente próximo, humano e cuidadoso, com parceria entre escola e família.",
+      "Uma escola que valoriza respeito, responsabilidade, parceria com a família e formação humana.",
     icon: HeartHandshake,
   },
 ]
 
 export function DifferentialsSection() {
   return (
-    <section className="bg-white py-16 sm:py-20">
+    <section className="bg-[#FFFFFF] py-16 sm:py-20">
       <Container>
         <div className="mx-auto max-w-3xl text-center">
           <span className="font-bold uppercase tracking-[0.3em] text-[#E4252A]">
@@ -38,25 +57,26 @@ export function DifferentialsSection() {
           </span>
 
           <h2 className="mt-3 text-3xl font-black text-[#071D5B] sm:text-5xl">
-            Uma escola que une cuidado, conhecimento e futuro.
+            Uma escola presente em cada fase da vida escolar.
           </h2>
 
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            A proposta do Coração de Maria valoriza a formação completa do
-            aluno, com base pedagógica sólida, inovação e princípios humanos.
+            O Coração de Maria une acolhimento, formação humana, rotina
+            pedagógica e atividades que ajudam o aluno a crescer com segurança,
+            autonomia e valores.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {differentials.map((item) => {
             const Icon = item.icon
 
             return (
               <article
                 key={item.title}
-                className="rounded-[2rem] border border-slate-100 bg-[#EAFBFF] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                className="rounded-[2rem] border border-[#071D5B]/5 bg-[#FFFFFF] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#0057D9] shadow-md">
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFFFFF] text-[#071D5B] shadow-md">
                   <Icon size={28} />
                 </div>
 

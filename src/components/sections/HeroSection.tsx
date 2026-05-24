@@ -1,22 +1,59 @@
-"use client"
-
 import Image from "next/image"
 import {
   ArrowRight,
+  Baby,
+  BookOpen,
   GraduationCap,
   Heart,
+  Home,
   LogIn,
+  Music,
   Sparkles,
   WalletCards,
-  X,
 } from "lucide-react"
-import { useState } from "react"
 import { Container } from "@/components/ui/Container"
 import { schoolInfo } from "@/constants/school"
 
-export function HeroSection() {
-  const [isPortalNoticeOpen, setIsPortalNoticeOpen] = useState(false)
+const heroHighlights = [
+  {
+    title: "Maternal ao 5º ano",
+    description: "Unidade Gaibu",
+    icon: Baby,
+    color: "text-[#0057D9]",
+  },
+  {
+    title: "Maternal ao Médio",
+    description: "Unidade Cabo",
+    icon: GraduationCap,
+    color: "text-[#071D5B]",
+  },
+  {
+    title: "Balé",
+    description: "Nas duas unidades",
+    icon: Music,
+    color: "text-[#E4252A]",
+  },
+  {
+    title: "Biblioteca",
+    description: "Incentivo à leitura",
+    icon: BookOpen,
+    color: "text-[#0057D9]",
+  },
+  {
+    title: "Valores",
+    description: "Formação humana",
+    icon: Heart,
+    color: "text-[#E4252A]",
+  },
+  {
+    title: "Acolhimento",
+    description: "Família e escola",
+    icon: Home,
+    color: "text-[#FF7A1C]",
+  },
+]
 
+export function HeroSection() {
   return (
     <section
       id="inicio"
@@ -27,7 +64,7 @@ export function HeroSection() {
 
       <Container className="grid min-h-[calc(100vh-80px)] items-center gap-10 py-10 lg:grid-cols-2 lg:py-16">
         <div className="relative z-10">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#071D5B] shadow-md">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#FFFFFF] px-4 py-2 text-sm font-bold text-[#071D5B] shadow-md">
             <Heart size={18} className="text-[#E4252A]" />
             {schoolInfo.slogan}
           </div>
@@ -43,9 +80,7 @@ export function HeroSection() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <a
-              href={`https://wa.me/${schoolInfo.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#escolher-unidade-whatsapp"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E4252A] px-7 py-4 text-base font-black text-white shadow-xl transition hover:scale-105"
             >
               Matricule seu filho
@@ -69,31 +104,32 @@ export function HeroSection() {
 
             <a
               href="#modulo-financeiro-em-desenvolvimento"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#071D5B] px-7 py-4 text-base font-black text-white shadow-xl transition hover:scale-105"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#071D5B] px-7 py-4 text-base font-black text-white shadow-xl ring-2 ring-[#FFFFFF]/70 transition hover:scale-105"
             >
               <WalletCards size={20} />
-              Acessar Portal Financeiro
+              2ª Via e Pagamentos
             </a>
           </div>
 
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div className="rounded-3xl bg-white p-4 shadow-md">
-              <GraduationCap className="mb-2 text-[#0057D9]" />
-              <strong className="block text-[#071D5B]">Infantil</strong>
-              <span className="text-sm text-slate-600">Base afetiva</span>
-            </div>
+            {heroHighlights.map((item) => {
+              const Icon = item.icon
 
-            <div className="rounded-3xl bg-white p-4 shadow-md">
-              <Sparkles className="mb-2 text-[#FF7A1C]" />
-              <strong className="block text-[#071D5B]">Robótica</strong>
-              <span className="text-sm text-slate-600">Inovação</span>
-            </div>
-
-            <div className="rounded-3xl bg-white p-4 shadow-md">
-              <Heart className="mb-2 text-[#E4252A]" />
-              <strong className="block text-[#071D5B]">Valores</strong>
-              <span className="text-sm text-slate-600">Formação humana</span>
-            </div>
+              return (
+                <div
+                  key={item.title}
+                  className="rounded-3xl bg-white p-4 shadow-md ring-1 ring-[#071D5B]/5"
+                >
+                  <Icon className={`mb-2 ${item.color}`} size={24} />
+                  <strong className="block text-sm text-[#071D5B] sm:text-base">
+                    {item.title}
+                  </strong>
+                  <span className="text-xs text-slate-600 sm:text-sm">
+                    {item.description}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -110,42 +146,6 @@ export function HeroSection() {
           </div>
         </div>
       </Container>
-
-      {isPortalNoticeOpen && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[#071D5B]/60 px-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-[2rem] bg-white p-6 text-center shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setIsPortalNoticeOpen(false)}
-              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#EAFBFF] text-[#071D5B]"
-              aria-label="Fechar aviso"
-            >
-              <X size={22} />
-            </button>
-
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#071D5B] text-white">
-              <LogIn size={30} />
-            </div>
-
-            <h2 className="text-2xl font-black text-[#071D5B]">
-              Portal do Aluno em desenvolvimento
-            </h2>
-
-            <p className="mt-4 leading-7 text-slate-700">
-              Em breve, pais, alunos e professores poderão acessar frequência,
-              notas, comunicados e informações acadêmicas em um sistema próprio.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setIsPortalNoticeOpen(false)}
-              className="mt-6 w-full rounded-full bg-[#E4252A] px-6 py-4 font-black text-white"
-            >
-              Entendi
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   )
 }

@@ -8,6 +8,7 @@ import { GallerySection } from "@/components/sections/GallerySection"
 import { MissionSection } from "@/components/sections/MissionSection"
 import { ContactSection } from "@/components/sections/ContactSection"
 import { DevelopmentModals } from "@/components/ui/DevelopmentModals"
+import { WhatsAppUnitDialog } from "@/components/ui/WhatsAppUnitDialog"
 
 export default function Home() {
   return (
@@ -24,6 +25,7 @@ export default function Home() {
       </main>
       <Footer />
       <DevelopmentModals />
+      <WhatsAppUnitDialog />
     </>
   )
 }

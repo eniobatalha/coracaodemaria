@@ -4,11 +4,10 @@ import {
   pageNavigationItems,
   systemNavigationItems,
 } from "@/constants/navigation"
-import { schoolInfo } from "@/constants/school"
 
 export function Header() {
   return (
-    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-white shadow-sm backdrop-blur-xl">
+    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-[#FFFFFF]/95 shadow-sm backdrop-blur-xl">
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <a href="#inicio" className="flex items-center">
           <Image
@@ -21,32 +20,32 @@ export function Header() {
           />
         </a>
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav className="hidden items-center gap-2 lg:flex">
           {pageNavigationItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="text-sm font-bold text-[#071D5B] transition hover:text-[#E4252A]"
+              className="rounded-full px-4 py-3 text-sm font-bold text-[#071D5B] transition hover:bg-[#E4252A] hover:text-white"
             >
               {item.label}
             </a>
           ))}
 
+          <div className="mx-1 h-8 w-px bg-[#071D5B]/15" />
+
           {systemNavigationItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="text-sm font-bold text-[#071D5B] transition hover:text-[#E4252A]"
+              className="rounded-full bg-[#071D5B]/10 px-4 py-3 text-sm font-black text-[#071D5B] ring-1 ring-[#071D5B]/15 transition hover:bg-[#071D5B] hover:text-white"
             >
               {item.label}
             </a>
           ))}
 
           <a
-            href={`https://wa.me/${schoolInfo.whatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full bg-[#E4252A] px-5 py-3 text-sm font-black text-white shadow-lg transition hover:scale-105"
+            href="#escolher-unidade-whatsapp"
+            className="ml-2 rounded-full bg-[#E4252A] px-5 py-3 text-sm font-black text-white shadow-lg transition hover:scale-105 hover:bg-[#c91f24]"
           >
             Matricule seu filho
           </a>
@@ -71,7 +70,7 @@ export function Header() {
           aria-label="Fechar menu"
         />
 
-        <nav className="relative z-[1001] rounded-[2rem] bg-white p-4 shadow-2xl">
+        <nav className="relative z-[1001] rounded-[2rem] bg-[#FFFFFF] p-4 shadow-2xl">
           <div className="mb-4 flex items-center justify-between">
             <strong className="text-lg font-black text-[#071D5B]">Menu</strong>
 
@@ -89,26 +88,26 @@ export function Header() {
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white transition active:scale-[0.98]"
+                className="rounded-2xl bg-[#EAFBFF] px-5 py-4 text-base font-black text-[#071D5B] transition active:scale-[0.98]"
               >
                 {item.label}
               </a>
             ))}
 
+            <div className="my-1 h-px bg-[#071D5B]/10" />
+
             {systemNavigationItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white transition active:scale-[0.98]"
+                className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white shadow-md transition active:scale-[0.98]"
               >
                 {item.label}
               </a>
             ))}
 
             <a
-              href={`https://wa.me/${schoolInfo.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#escolher-unidade-whatsapp"
               className="rounded-2xl bg-[#E4252A] px-5 py-4 text-center text-base font-black text-white shadow-lg transition active:scale-[0.98]"
             >
               Matricule seu filho

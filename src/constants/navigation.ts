@@ -23,7 +23,7 @@ export const systemNavigationItems = [
     href: "#portal-aluno-em-desenvolvimento",
   },
   {
-    label: "Financeiro",
+    label: "Portal Financeiro",
     href: "#modulo-financeiro-em-desenvolvimento",
   },
 ]
