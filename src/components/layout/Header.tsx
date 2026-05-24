@@ -89,7 +89,7 @@ export function Header() {
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-2xl bg-[#EAFBFF] px-5 py-4 text-base font-black text-[#071D5B] transition active:scale-[0.98]"
+                className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white transition active:scale-[0.98]"
               >
                 {item.label}
               </a>
@@ -99,7 +99,7 @@ export function Header() {
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-2xl bg-[#FFF4E8] px-5 py-4 text-base font-black text-[#071D5B] transition active:scale-[0.98]"
+                className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white transition active:scale-[0.98]"
               >
                 {item.label}
               </a>

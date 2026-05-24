@@ -45,7 +45,7 @@ export function Footer() {
                   href={unit.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 flex gap-3 text-sm leading-6 text-blue-100 transition hover:text-white"
+                  className="mt-3 flex gap-3 text-sm underline leading-6 text-blue-100 transition hover:text-white"
                 >
                   <MapPin className="mt-1 shrink-0 text-[#FF7A1C]" size={20} />
                   <span>{unit.address}</span>

@@ -19,7 +19,7 @@ export const schoolInfo = {
     },
     {
       name: "Unidade Gaibu",
-      address: "Gaibu, Cabo de Santo Agostinho - PE",
+      address: "Av. Laura Cavalcante - Gaibu, Cabo de Santo Agostinho - PE, 54515-160",
       mapsUrl:
         "https://www.google.com/maps/dir/?api=1&destination=-8.3378264,-34.9532053",
       instagramLabel: "@coracaodemariagaibu",

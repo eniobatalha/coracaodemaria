@@ -50,7 +50,7 @@ export function ContactSection() {
                   <Phone className="shrink-0 text-[#E4252A]" />
                   <div>
                     <strong className="block">
-                      Unidade Cabo Vila Social
+                      Unidade Cabo (Vila Social)
                     </strong>
                     <span>{schoolInfo.phoneCabo}</span>
                   </div>
