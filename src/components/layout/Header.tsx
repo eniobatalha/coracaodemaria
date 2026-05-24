@@ -1,35 +1,16 @@
-"use client"
-
 import Image from "next/image"
 import { Menu, X } from "lucide-react"
-import { useRef } from "react"
-import { navigationItems } from "@/constants/navigation"
+import {
+  pageNavigationItems,
+  systemNavigationItems,
+} from "@/constants/navigation"
 import { schoolInfo } from "@/constants/school"
 
 export function Header() {
-  const detailsRef = useRef<HTMLDetailsElement | null>(null)
-
-  function closeMobileMenu() {
-    const details = detailsRef.current
-
-    if (!details) {
-      return
-    }
-
-    details.open = false
-    details.removeAttribute("open")
-  }
-
-  function closeMobileMenuAfterClick() {
-    window.setTimeout(() => {
-      closeMobileMenu()
-    }, 80)
-  }
-
   return (
-    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-xl">
+    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-white shadow-sm backdrop-blur-xl">
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a href="#inicio" onClick={closeMobileMenuAfterClick} className="flex items-center">
+        <a href="#inicio" className="flex items-center">
           <Image
             src="/images/logo-coracao-de-maria.png"
             alt="Logo do Colégio e Curso Coração de Maria"
@@ -41,7 +22,17 @@ export function Header() {
         </a>
 
         <nav className="hidden items-center gap-7 lg:flex">
-          {navigationItems.map((item) => (
+          {pageNavigationItems.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="text-sm font-bold text-[#071D5B] transition hover:text-[#E4252A]"
+            >
+              {item.label}
+            </a>
+          ))}
+
+          {systemNavigationItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
@@ -61,47 +52,69 @@ export function Header() {
           </a>
         </nav>
 
-        <details ref={detailsRef} className="group lg:hidden">
-          <summary className="relative z-[1002] flex h-12 w-12 cursor-pointer list-none items-center justify-center rounded-full bg-[#071D5B] text-white shadow-lg [&::-webkit-details-marker]:hidden">
-            <Menu size={26} className="block group-open:hidden" />
-            <X size={26} className="hidden group-open:block" />
-          </summary>
+        <a
+          href="#mobile-menu"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-[#071D5B] text-white shadow-lg lg:hidden"
+          aria-label="Abrir menu"
+        >
+          <Menu size={26} />
+        </a>
+      </div>
 
-          <div className="fixed inset-x-0 top-20 z-[1000] h-[calc(100vh-80px)] bg-[#071D5B]/45 px-4 pt-4 backdrop-blur-sm lg:hidden">
-            <button
-              type="button"
-              onClick={closeMobileMenu}
-              className="absolute inset-0 h-full w-full"
+      <div
+        id="mobile-menu"
+        className="fixed inset-x-0 top-20 z-[1000] hidden h-[calc(100vh-80px)] bg-[#071D5B]/45 px-4 pt-4 backdrop-blur-sm target:block lg:hidden"
+      >
+        <a
+          href="#fechar"
+          className="absolute inset-0 h-full w-full"
+          aria-label="Fechar menu"
+        />
+
+        <nav className="relative z-[1001] rounded-[2rem] bg-white p-4 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between">
+            <strong className="text-lg font-black text-[#071D5B]">Menu</strong>
+
+            <a
+              href="#fechar"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#071D5B] text-white"
               aria-label="Fechar menu"
-            />
-
-            <nav
-              onClickCapture={closeMobileMenuAfterClick}
-              className="relative z-[1001] rounded-[2rem] bg-white p-4 shadow-2xl"
             >
-              <div className="flex flex-col gap-3">
-                {navigationItems.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className="rounded-2xl bg-[#EAFBFF] px-5 py-4 text-base font-black text-[#071D5B] transition active:scale-[0.98]"
-                  >
-                    {item.label}
-                  </a>
-                ))}
-
-                <a
-                  href={`https://wa.me/${schoolInfo.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl bg-[#E4252A] px-5 py-4 text-center text-base font-black text-white shadow-lg transition active:scale-[0.98]"
-                >
-                  Matricule seu filho
-                </a>
-              </div>
-            </nav>
+              <X size={22} />
+            </a>
           </div>
-        </details>
+
+          <div className="flex flex-col gap-3">
+            {pageNavigationItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="rounded-2xl bg-[#EAFBFF] px-5 py-4 text-base font-black text-[#071D5B] transition active:scale-[0.98]"
+              >
+                {item.label}
+              </a>
+            ))}
+
+            {systemNavigationItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="rounded-2xl bg-[#FFF4E8] px-5 py-4 text-base font-black text-[#071D5B] transition active:scale-[0.98]"
+              >
+                {item.label}
+              </a>
+            ))}
+
+            <a
+              href={`https://wa.me/${schoolInfo.whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl bg-[#E4252A] px-5 py-4 text-center text-base font-black text-white shadow-lg transition active:scale-[0.98]"
+            >
+              Matricule seu filho
+            </a>
+          </div>
+        </nav>
       </div>
     </header>
   )

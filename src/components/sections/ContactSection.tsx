@@ -4,7 +4,7 @@ import { schoolInfo } from "@/constants/school"
 
 export function ContactSection() {
   return (
-    <section id="portal" className="bg-white py-16 sm:py-20">
+    <section id="contato" className="bg-white py-16 sm:py-20">
       <Container>
         <div className="overflow-hidden rounded-[2.5rem] bg-[#071D5B] shadow-2xl">
           <div className="grid gap-8 p-6 text-white sm:p-10 lg:grid-cols-[1.1fr_0.9fr] lg:p-12">
@@ -26,6 +26,7 @@ export function ContactSection() {
                 <a
                   href={`https://wa.me/${schoolInfo.whatsapp}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E4252A] px-7 py-4 text-base font-black text-white transition hover:scale-105"
                 >
                   <MessageCircle size={22} />
@@ -41,14 +42,16 @@ export function ContactSection() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] bg-white p-6 text-[#071D5B]">
+            <div className="rounded-[2rem] bg-white p-6 text-[#071D5B] shadow-xl">
               <h3 className="text-2xl font-black">Contatos</h3>
 
               <div className="mt-6 space-y-5">
                 <div className="flex gap-3">
                   <Phone className="shrink-0 text-[#E4252A]" />
                   <div>
-                    <strong className="block">Unidade Cabo</strong>
+                    <strong className="block">
+                      Unidade Cabo Vila Social
+                    </strong>
                     <span>{schoolInfo.phoneCabo}</span>
                   </div>
                 </div>
@@ -65,16 +68,18 @@ export function ContactSection() {
                   <MapPin className="shrink-0 text-[#E4252A]" />
                   <div>
                     <strong className="block">Unidades</strong>
-                    <span>{schoolInfo.address}</span>
+                    <span>Cabo de Santo Agostinho e Gaibu</span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 rounded-2xl bg-[#EAFBFF] p-4">
-                <strong className="block">Portal do Aluno</strong>
+                <strong className="block">Atendimento personalizado</strong>
+
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                  O acesso ao sistema de frequência, notas, pais e professores
-                  será desenvolvido na próxima etapa.
+                  Entre em contato para conhecer a proposta pedagógica,
+                  consultar disponibilidade de turmas e receber orientações
+                  sobre matrícula.
                 </p>
               </div>
             </div>

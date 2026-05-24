@@ -7,6 +7,7 @@ import { PedagogySection } from "@/components/sections/PedagogySection"
 import { GallerySection } from "@/components/sections/GallerySection"
 import { MissionSection } from "@/components/sections/MissionSection"
 import { ContactSection } from "@/components/sections/ContactSection"
+import { DevelopmentModals } from "@/components/ui/DevelopmentModals"
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
         <ContactSection />
       </main>
       <Footer />
+      <DevelopmentModals />
     </>
   )
 }

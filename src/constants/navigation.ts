@@ -1,11 +1,7 @@
-export const navigationItems = [
+export const pageNavigationItems = [
   {
     label: "Início",
     href: "#inicio",
-  },
-  {
-    label: "Portal do Aluno",
-    href: "#portal",
   },
   {
     label: "Galeria",
@@ -18,5 +14,16 @@ export const navigationItems = [
   {
     label: "Missão, Visão e Valores",
     href: "#missao",
+  },
+]
+
+export const systemNavigationItems = [
+  {
+    label: "Portal do Aluno",
+    href: "#portal-aluno-em-desenvolvimento",
+  },
+  {
+    label: "Financeiro",
+    href: "#modulo-financeiro-em-desenvolvimento",
   },
 ]

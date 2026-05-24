@@ -7,4 +7,23 @@ export const schoolInfo = {
   instagram: "#",
   address: "Cabo de Santo Agostinho e Gaibu",
   portalUrl: "#",
+  units: [
+    {
+      name: "Unidade Cabo (Vila Social)",
+      address:
+        "R. Manoel Lélis Barbosa, 4 - Vila Dr. Manoel Clementino, Cabo de Santo Agostinho - PE, 54510-270",
+      mapsUrl:
+        "https://www.google.com/maps/dir/?api=1&destination=-8.2801935,-35.0295701",
+      instagramLabel: "@coracaodemariavila",
+      instagramUrl: "https://www.instagram.com/coracaodemariavila/",
+    },
+    {
+      name: "Unidade Gaibu",
+      address: "Gaibu, Cabo de Santo Agostinho - PE",
+      mapsUrl:
+        "https://www.google.com/maps/dir/?api=1&destination=-8.3378264,-34.9532053",
+      instagramLabel: "@coracaodemariagaibu",
+      instagramUrl: "https://www.instagram.com/coracaodemariagaibu/",
+    },
+  ],
 }

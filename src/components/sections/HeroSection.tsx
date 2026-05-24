@@ -7,6 +7,7 @@ import {
   Heart,
   LogIn,
   Sparkles,
+  WalletCards,
   X,
 } from "lucide-react"
 import { useState } from "react"
@@ -58,14 +59,21 @@ export function HeroSection() {
               Conheça a escola
             </a>
 
-            <button
-              type="button"
-              onClick={() => setIsPortalNoticeOpen(true)}
+            <a
+              href="#portal-aluno-em-desenvolvimento"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#071D5B] px-7 py-4 text-base font-black text-white shadow-xl transition hover:scale-105"
             >
               <LogIn size={20} />
               Acessar Portal do Aluno
-            </button>
+            </a>
+
+            <a
+              href="#portal-aluno-em-desenvolvimento"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#071D5B] px-7 py-4 text-base font-black text-white shadow-xl transition hover:scale-105"
+            >
+              <WalletCards size={20} />
+              2ª Via e Pagamentos
+            </a>
           </div>
 
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
