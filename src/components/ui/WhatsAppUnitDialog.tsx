@@ -17,7 +17,7 @@ export function WhatsAppUnitDialog() {
             <div className="relative z-[2001] w-full max-w-lg rounded-[2rem] bg-[#FFFFFF] p-6 shadow-2xl">
                 <a
                     href="#fechar"
-                    className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#EAFBFF] text-[#071D5B]"
+                    className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#071D5B] text-white"
                     aria-label="Fechar escolha de unidade"
                 >
                     <X size={22} />

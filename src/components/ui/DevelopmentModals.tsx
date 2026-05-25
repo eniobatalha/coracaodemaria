@@ -16,7 +16,7 @@ export function DevelopmentModals() {
         <div className="relative z-[2001] w-full max-w-md rounded-[2rem] bg-white p-6 text-center shadow-2xl">
           <a
             href="#fechar"
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#EAFBFF] text-[#071D5B]"
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#071D5B] text-white"
             aria-label="Fechar aviso"
           >
             <X size={22} />
@@ -58,7 +58,7 @@ export function DevelopmentModals() {
         <div className="relative z-[2001] w-full max-w-md rounded-[2rem] bg-white p-6 text-center shadow-2xl">
           <a
             href="#fechar"
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#EAFBFF] text-[#071D5B]"
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#071D5B] text-white"
             aria-label="Fechar aviso"
           >
             <X size={22} />
