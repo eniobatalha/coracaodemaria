@@ -55,7 +55,7 @@ export function SegmentsSection() {
               return (
                 <article
                   key={segment.title}
-                  className="rounded-[2rem] bg-white/10 p-6 ring-1 ring-white/15 backdrop-blur"
+                  className="rounded-[2rem] bg-white/15 p-6 ring-1 ring-white/20"
                 >
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#071D5B]">
                     <Icon size={28} />

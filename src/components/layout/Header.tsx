@@ -7,7 +7,7 @@ import {
 
 export function Header() {
   return (
-    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-[#FFFFFF]/95 shadow-sm backdrop-blur-xl">
+    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-[#FFFFFF] shadow-sm">
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <a href="#inicio" className="flex items-center">
           <Image
@@ -37,6 +37,8 @@ export function Header() {
             <a
               key={item.href}
               href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener noreferrer" : undefined}
               className="rounded-full bg-[#071D5B]/10 px-4 py-3 text-sm font-black text-[#071D5B] ring-1 ring-[#071D5B]/15 transition hover:bg-[#071D5B] hover:text-white"
             >
               {item.label}
@@ -62,7 +64,7 @@ export function Header() {
 
       <div
         id="mobile-menu"
-        className="fixed inset-x-0 top-20 z-[1000] hidden h-[calc(100vh-80px)] bg-[#071D5B]/45 px-4 pt-4 backdrop-blur-sm target:block lg:hidden"
+        className="fixed inset-x-0 top-20 z-1000 hidden h-[calc(100vh-80px)] bg-[#071D5B]/45 px-4 pt-4 backdrop-blur-sm target:block lg:hidden"
       >
         <a
           href="#fechar"
@@ -70,7 +72,7 @@ export function Header() {
           aria-label="Fechar menu"
         />
 
-        <nav className="relative z-[1001] rounded-[2rem] bg-[#FFFFFF] p-4 shadow-2xl">
+        <nav className="relative z-1001 rounded-4xl bg-[#FFFFFF] p-4 shadow-2xl">
           <div className="mb-4 flex items-center justify-between">
             <strong className="text-lg font-black text-[#071D5B]">Menu</strong>
 
@@ -100,6 +102,8 @@ export function Header() {
               <a
                 key={item.href}
                 href={item.href}
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
                 className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white shadow-md transition active:scale-[0.98]"
               >
                 {item.label}

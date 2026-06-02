@@ -74,7 +74,7 @@ export function DifferentialsSection() {
             return (
               <article
                 key={item.title}
-                className="rounded-[2rem] border border-[#071D5B]/5 bg-[#FFFFFF] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                className="rounded-[2rem] border border-[#071D5B]/5 bg-[#FFFFFF] p-6 shadow-sm transition-shadow hover:shadow-xl"
               >
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFFFFF] text-[#071D5B] shadow-md">
                   <Icon size={28} />

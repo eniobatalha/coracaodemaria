@@ -20,10 +20,12 @@ export const pageNavigationItems = [
 export const systemNavigationItems = [
   {
     label: "Portal do Aluno",
-    href: "#portal-aluno-em-desenvolvimento",
+    href: "/portal",
+    external: true,
   },
   {
     label: "Portal Financeiro",
     href: "#modulo-financeiro-em-desenvolvimento",
+    external: false,
   },
 ]
