@@ -9,6 +9,7 @@ import type {
   GalleryAlbum,
   GalleryItem,
   Boleto,
+  ChatMessage,
 } from "./types"
 
 export const MOCK_GUARDIAN: Guardian = {
@@ -27,7 +28,7 @@ export const MOCK_STUDENTS: Student[] = [
     grade: "4º Ano",
     class: "A",
     shift: "Manhã",
-    teacher: "Profª Fulana da Silva",
+    teacher: "Profª Paula Virgínia",
     unit: "Cabo",
     notifications: 3,
     guardianIds: ["g1"],
@@ -162,6 +163,31 @@ export const MOCK_GALLERY_ITEMS: Record<string, GalleryItem[]> = {
 const PIX_KEY = "financeiro@coracaodemaria.edu.br"
 const BARCODE_S1 = "03399.04584 04004.200002 84440.760002 6 98050000085000"
 const BARCODE_S2 = "03399.04584 04004.200002 84440.760002 6 98050000075000"
+
+export const MOCK_CHAT_MESSAGES: Record<string, ChatMessage[]> = {
+  s1: [
+    { id: "c01", from: "teacher",  date: "2026-05-20", time: "08:12", read: true,  text: "Bom dia, Larissa! Tudo bem? Queria compartilhar que o Dionísio está se saindo muito bem nas aulas de Ciências. Ele demonstrou bastante entusiasmo no projeto do sistema solar." },
+    { id: "c02", from: "guardian", date: "2026-05-20", time: "09:30", read: true,  text: "Bom dia, professora! Que ótima notícia! Ele realmente se animou muito com esse tema em casa também." },
+    { id: "c03", from: "teacher",  date: "2026-05-20", time: "09:45", read: true,  text: "Fico feliz! Aproveito pra pedir que ele traga amanhã o dever de matemática que ficou em atraso, tá? São as páginas 34 e 35 do livro." },
+    { id: "c04", from: "guardian", date: "2026-05-20", time: "11:02", read: true,  text: "Entendido! Já vou lembrar ele hoje à tarde. Obrigada por avisar." },
+    { id: "c05", from: "teacher",  date: "2026-05-21", time: "08:35", read: true,  text: "Bom dia! O Dionísio trouxe o dever hoje. Parabéns, Larissa, ele estava completinho e bem feito 👏" },
+    { id: "c06", from: "guardian", date: "2026-05-21", time: "12:15", read: true,  text: "Que bom, professora! A gente batalhou ontem à noite mas deu certo 😄" },
+    { id: "c07", from: "teacher",  date: "2026-05-28", time: "10:00", read: true,  text: "Olá! Só pra lembrar: na sexta-feira (30/05) não haverá aula por conta da formação dos professores. As aulas retornam na segunda." },
+    { id: "c08", from: "guardian", date: "2026-05-28", time: "13:40", read: true,  text: "Perfeito, obrigada pelo aviso! Já me organizarei." },
+    { id: "c09", from: "teacher",  date: "2026-06-01", time: "09:10", read: true,  text: "Larissa, a reunião de pais será no dia 10/06 às 19h aqui na unidade. É importante sua presença para acompanharmos o desempenho do Dionísio no 3º bimestre." },
+    { id: "c10", from: "guardian", date: "2026-06-01", time: "14:20", read: true,  text: "Anotado! Vou estar lá com certeza." },
+    { id: "c11", from: "teacher",  date: "2026-06-02", time: "07:55", read: false, text: "Bom dia! Uma observação: o Dionísio estava um pouco agitado ontem durante a aula de matemática. Nada grave, só queria que vocês ficassem atentos em casa também 😊" },
+  ],
+  s2: [
+    { id: "c12", from: "teacher",  date: "2026-05-10", time: "09:00", read: true,  text: "Oi Larissa! A Hera está se adaptando muito bem à turma. As outras crianças adoram ela!" },
+    { id: "c13", from: "guardian", date: "2026-05-10", time: "10:30", read: true,  text: "Que alegria ouvir isso! Ela fica muito animada de ir pra escola todos os dias." },
+    { id: "c14", from: "teacher",  date: "2026-05-10", time: "11:05", read: true,  text: "Isso é lindo! Ela está evoluindo muito na identificação das letras. Continue incentivando a leitura em casa 📚" },
+    { id: "c15", from: "guardian", date: "2026-05-10", time: "18:45", read: true,  text: "Com certeza! A gente lê uma história antes de dormir toda noite." },
+    { id: "c16", from: "teacher",  date: "2026-05-29", time: "08:20", read: true,  text: "Bom dia! Semana que vem teremos uma atividade especial de arte na sexta. A escola fornece os materiais, não precisa trazer nada 🎨" },
+    { id: "c17", from: "guardian", date: "2026-05-29", time: "09:00", read: true,  text: "Uau, ela vai amar! Obrigada por avisar, professora." },
+    { id: "c18", from: "teacher",  date: "2026-06-02", time: "08:05", read: false, text: "Olá Larissa! A Hera ficou um pouquinho quietinha hoje, diferente do habitual. Tomou água e ficou bem, mas só passando pra informar. Qualquer coisa me chame 💙" },
+  ],
+}
 
 export const MOCK_BOLETOS: Record<string, Boleto[]> = {
   s1: [

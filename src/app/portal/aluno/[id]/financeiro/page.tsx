@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardCopy,
   Download,
+  Loader2,
   QrCode,
   WalletCards,
   X,
@@ -89,25 +90,27 @@ function PixModal({ boleto, onClose }: { boleto: Boleto; onClose: () => void }) 
   )
 }
 
-function downloadBoleto(boleto: Boleto, studentName: string) {
+async function downloadBoleto(boleto: Boleto, studentName: string) {
+  const { htmlToPdf } = await import("@/lib/portal/generate-pdf")
+
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
 <title>Boleto — ${boleto.title}</title>
 <style>
-  body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#071D5B;background:#fff}
-  .header{border-bottom:3px solid #071D5B;padding-bottom:12px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
-  h1{font-size:18px;margin:0}
-  .badge{background:#071D5B;color:#fff;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:bold}
-  .row{display:flex;gap:24px;margin-bottom:12px}
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;margin:0;padding:48px 40px 56px;color:#071D5B;background:#fff;width:794px}
+  .header{border-bottom:3px solid #071D5B;padding-bottom:16px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between}
+  h1{font-size:20px;margin:0}
+  .badge{background:#071D5B;color:#fff;padding:6px 16px;border-radius:999px;font-size:12px;font-weight:bold;white-space:nowrap}
+  .row{display:flex;gap:32px;margin-bottom:20px}
   .field{flex:1}
-  .label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#888;font-weight:bold}
-  .value{font-size:14px;font-weight:bold;margin-top:2px}
-  .amount{font-size:28px;font-weight:900;color:#E4252A}
-  .barcode{background:#f5f5f5;border-radius:8px;padding:12px;margin-top:16px;font-family:monospace;font-size:13px;letter-spacing:.05em;word-break:break-all}
-  .footer{margin-top:24px;border-top:1px solid #ddd;padding-top:12px;font-size:11px;color:#888;text-align:center}
-  @media print{body{padding:0}}
+  .label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#999;font-weight:bold;margin-bottom:6px}
+  .value{font-size:15px;font-weight:bold}
+  .amount{font-size:30px;font-weight:900;color:#E4252A}
+  .barcode{background:#f5f5f5;border-radius:8px;padding:16px 18px;margin-top:20px;font-family:monospace;font-size:13px;letter-spacing:.05em;word-break:break-all;line-height:1.6}
+  .footer{margin-top:36px;border-top:1px solid #e5e5e5;padding-top:16px;font-size:11px;color:#aaa;text-align:center;line-height:1.8}
 </style>
 </head>
 <body>
@@ -126,16 +129,15 @@ function downloadBoleto(boleto: Boleto, studentName: string) {
   <div class="field"><div class="label">Vencimento</div><div class="value">${formatDate(boleto.dueDate)}</div></div>
   <div class="field"><div class="label">Valor</div><div class="amount">${formatBRL(boleto.value)}</div></div>
 </div>
-<div class="field" style="margin-bottom:8px"><div class="label">Descrição</div><div class="value" style="font-weight:normal">${boleto.description}</div></div>
-<div class="label" style="margin-top:16px">Linha Digitável</div>
+<div class="field" style="margin-bottom:10px"><div class="label">Descrição</div><div class="value" style="font-weight:normal">${boleto.description}</div></div>
+<div class="label" style="margin-top:18px">Linha Digitável</div>
 <div class="barcode">${boleto.barcode}</div>
 <div class="footer">Colégio e Curso Coração de Maria · financeiro@coracaodemaria.edu.br<br/>Este boleto é gerado automaticamente — integração bancária em implementação.</div>
-<script>window.onload=()=>window.print()</script>
 </body>
 </html>`
 
-  const win = window.open("", "_blank")
-  if (win) { win.document.write(html); win.document.close() }
+  const slug = boleto.title.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-")
+  await htmlToPdf(html, `boleto-${slug}-${boleto.dueDate}.pdf`)
 }
 
 export default function FinanceiroPage() {
@@ -145,6 +147,7 @@ export default function FinanceiroPage() {
   const boletos   = MOCK_BOLETOS[studentId] ?? []
   const [pixBoleto,  setPixBoleto]  = useState<Boleto | null>(null)
   const [copiedId,   setCopiedId]   = useState<string | null>(null)
+  const [pdfId,      setPdfId]      = useState<string | null>(null)
 
   if (!student) return null
 
@@ -229,10 +232,18 @@ export default function FinanceiroPage() {
                     Pix
                   </button>
 
-                  <button onClick={() => downloadBoleto(boleto, student.name)}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#071D5B] px-3 py-2.5 text-sm font-bold text-white transition hover:bg-[#0a2a80]">
-                    <Download size={16} />
-                    Boleto
+                  <button
+                    onClick={async () => {
+                      setPdfId(boleto.id)
+                      await downloadBoleto(boleto, student.name)
+                      setPdfId(null)
+                    }}
+                    disabled={pdfId === boleto.id}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#071D5B] px-3 py-2.5 text-sm font-bold text-white transition hover:bg-[#0a2a80] disabled:opacity-60">
+                    {pdfId === boleto.id
+                      ? <Loader2 size={16} className="animate-spin" />
+                      : <Download size={16} />}
+                    {pdfId === boleto.id ? "Gerando…" : "Boleto PDF"}
                   </button>
                 </div>
               )}

@@ -35,19 +35,19 @@ function docWrapper(title: string, body: string) {
 <meta charset="UTF-8"/>
 <title>${title}</title>
 <style>
-  body{font-family:Arial,sans-serif;margin:0;padding:40px;color:#071D5B;background:#fff;max-width:700px;margin:0 auto;padding:40px}
-  p{line-height:1.8;font-size:14px}
-  .sign{margin-top:60px;text-align:center}
-  .sign-line{border-top:1px solid #071D5B;width:260px;display:inline-block;margin-bottom:4px}
-  .footer{margin-top:40px;border-top:1px solid #ddd;padding-top:12px;font-size:11px;color:#888;text-align:center}
-  @media print{body{padding:20px}}
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;margin:0 auto;padding:52px 56px 64px;color:#071D5B;background:#fff;width:794px}
+  p{line-height:1.9;font-size:14px;margin:0 0 14px}
+  h2{margin:0 0 28px;font-size:16px;letter-spacing:.04em}
+  .sign{margin-top:64px;text-align:center}
+  .sign-line{border-top:1px solid #071D5B;width:260px;display:inline-block;margin-bottom:6px}
+  .footer{margin-top:44px;border-top:1px solid #e5e5e5;padding-top:16px;font-size:11px;color:#aaa;text-align:center;line-height:1.8}
 </style>
 </head>
 <body>
 ${schoolHeader()}
 ${body}
 <div class="footer">Documento emitido eletronicamente pelo Portal do Aluno — Colégio e Curso Coração de Maria</div>
-<script>window.onload=()=>window.print()</script>
 </body>
 </html>`
 }
@@ -150,14 +150,13 @@ export default function DeclaracoesPage() {
 
   if (!student) return null
 
-  function handleGenerate(decl: Declaration) {
+  async function handleGenerate(decl: Declaration) {
     setGeneratingId(decl.id)
-    setTimeout(() => {
-      const html = decl.generate(student!, today())
-      const win  = window.open("", "_blank")
-      if (win) { win.document.write(html); win.document.close() }
-      setGeneratingId(null)
-    }, 600)
+    const { htmlToPdf } = await import("@/lib/portal/generate-pdf")
+    const html = decl.generate(student!, today())
+    const first = student!.name.split(" ")[0].toLowerCase()
+    await htmlToPdf(html, `${decl.id}-${first}.pdf`)
+    setGeneratingId(null)
   }
 
   return (

@@ -10,9 +10,10 @@ import {
   ClipboardList,
   FileText,
   GalleryHorizontal,
+  MessageCircle,
   WalletCards,
 } from "lucide-react"
-import { MOCK_STUDENTS, MOCK_NOTICES, MOCK_ATTENDANCE, MOCK_BOLETOS } from "@/lib/portal/mock-data"
+import { MOCK_STUDENTS, MOCK_NOTICES, MOCK_ATTENDANCE, MOCK_BOLETOS, MOCK_CHAT_MESSAGES } from "@/lib/portal/mock-data"
 
 export default function StudentDashboard() {
   const params = useParams()
@@ -35,6 +36,9 @@ export default function StudentDashboard() {
   const boletos = MOCK_BOLETOS[studentId] ?? []
   const pendingBoletos = boletos.filter((b) => b.status !== "Pago").length
   const vencidos = boletos.filter((b) => b.status === "Vencido").length
+
+  const chatMsgs  = MOCK_CHAT_MESSAGES[studentId] ?? []
+  const unreadChat = chatMsgs.filter((m) => m.from === "teacher" && !m.read).length
 
   const menuItems = [
     {
@@ -70,12 +74,20 @@ export default function StudentDashboard() {
       color: "#6366f1",
     },
     {
-      label: "Avisos",
-      href: `/portal/aluno/${studentId}/avisos`,
+      label: "Comunicados",
+      href: `/portal/aluno/${studentId}/comunicados`,
       icon: Bell,
-      sub: unreadNotices > 0 ? `${unreadNotices} não lido${unreadNotices > 1 ? "s" : ""}` : "Nenhum novo aviso",
+      sub: unreadNotices > 0 ? `${unreadNotices} não lido${unreadNotices > 1 ? "s" : ""}` : "Nenhum novo",
       badge: unreadNotices > 0 ? unreadNotices : null,
       color: "#E4252A",
+    },
+    {
+      label: "Chat",
+      href: `/portal/aluno/${studentId}/chat`,
+      icon: MessageCircle,
+      sub: unreadChat > 0 ? `${unreadChat} mensagem${unreadChat > 1 ? "ns" : ""} nova${unreadChat > 1 ? "s" : ""}` : "Fale com a professora",
+      badge: unreadChat > 0 ? unreadChat : null,
+      color: "#0057D9",
     },
     {
       label: "Galeria",

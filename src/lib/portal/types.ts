@@ -84,6 +84,15 @@ export type Boleto = {
   pixKey: string
 }
 
+export type ChatMessage = {
+  id: string
+  from: "guardian" | "teacher"
+  text: string
+  time: string
+  date: string
+  read: boolean
+}
+
 export type GalleryItem = {
   id: string
   type: "photo" | "video"

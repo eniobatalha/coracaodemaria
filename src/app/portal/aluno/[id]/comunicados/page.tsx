@@ -62,7 +62,7 @@ function NoticeCard({ notice }: { notice: Notice }) {
   )
 }
 
-export default function AvisosPage() {
+export default function ComunicadosPage() {
   const params = useParams()
   const studentId = params.id as string
   const student = MOCK_STUDENTS.find((s) => s.id === studentId)
@@ -85,7 +85,7 @@ export default function AvisosPage() {
           )}
         </div>
         <div>
-          <h1 className="text-xl font-black text-[#071D5B]">Avisos</h1>
+          <h1 className="text-xl font-black text-[#071D5B]">Comunicados</h1>
           <p className="text-sm text-slate-500">
             {unread.length > 0
               ? `${unread.length} não lido${unread.length > 1 ? "s" : ""}`

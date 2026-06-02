@@ -16,12 +16,13 @@ import {
   Home,
   LogOut,
   Menu,
+  MessageCircle,
   Users,
   WalletCards,
   X,
 } from "lucide-react"
 import type { Guardian, Student } from "@/lib/portal/types"
-import { MOCK_STUDENTS } from "@/lib/portal/mock-data"
+import { MOCK_STUDENTS, MOCK_CHAT_MESSAGES } from "@/lib/portal/mock-data"
 
 function getInitials(name: string) {
   return name
@@ -33,15 +34,16 @@ function getInitials(name: string) {
 }
 
 const navItems = [
-  { label: "Início",            href: "",                  icon: Home             },
-  { label: "Boletim",           href: "/boletim",          icon: BookOpen         },
-  { label: "Frequência",        href: "/frequencia",       icon: CalendarDays     },
-  { label: "Agenda da Escola",  href: "/agenda-escola",    icon: CalendarRange    },
-  { label: "Agenda Individual", href: "/agenda-individual", icon: ClipboardList   },
-  { label: "Avisos",            href: "/avisos",           icon: Bell             },
+  { label: "Início",            href: "",                  icon: Home              },
+  { label: "Boletim",           href: "/boletim",          icon: BookOpen          },
+  { label: "Frequência",        href: "/frequencia",       icon: CalendarDays      },
+  { label: "Agenda da Escola",  href: "/agenda-escola",    icon: CalendarRange     },
+  { label: "Agenda Individual", href: "/agenda-individual", icon: ClipboardList    },
+  { label: "Comunicados",       href: "/comunicados",      icon: Bell              },
+  { label: "Chat",              href: "/chat",             icon: MessageCircle     },
   { label: "Galeria",           href: "/galeria",          icon: GalleryHorizontal },
-  { label: "Financeiro",        href: "/financeiro",       icon: WalletCards      },
-  { label: "Declarações",       href: "/declaracoes",      icon: FileText         },
+  { label: "Financeiro",        href: "/financeiro",       icon: WalletCards       },
+  { label: "Declarações",       href: "/declaracoes",      icon: FileText          },
 ]
 
 const bottomNavItems = navItems.slice(0, 4)
@@ -75,6 +77,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const isBoy       = student.gender === "M"
   const accentColor = isBoy ? "#0057D9" : "#E4252A"
   const initials    = getInitials(student.name)
+
+  const chatMessages = MOCK_CHAT_MESSAGES[studentId] ?? []
+  const unreadChat   = chatMessages.filter((m) => m.from === "teacher" && !m.read).length
 
   function isActive(href: string) {
     const full = `/portal/aluno/${studentId}${href}`
@@ -136,10 +141,16 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 }`}>
                 <Icon size={18} />
                 {item.label}
-                {item.label === "Avisos" && student.notifications > 0 && (
+                {item.label === "Comunicados" && student.notifications > 0 && (
                   <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-black ${
                     active ? "bg-white text-[#E4252A]" : "bg-[#E4252A] text-white"}`}>
                     {student.notifications}
+                  </span>
+                )}
+                {item.label === "Chat" && unreadChat > 0 && (
+                  <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-black ${
+                    active ? "bg-white text-[#E4252A]" : "bg-[#E4252A] text-white"}`}>
+                    {unreadChat}
                   </span>
                 )}
               </Link>
@@ -180,7 +191,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               </span>
             )}
           </div>
-          <span className="max-w-[140px] truncate text-sm font-black text-white">{student.name}</span>
+          <span className="max-w-35 truncate text-sm font-black text-white">{student.name}</span>
         </div>
         <button onClick={() => setMenuOpen(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full text-white hover:bg-white/10"
@@ -241,10 +252,16 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                     }`}>
                     <Icon size={20} />
                     {item.label}
-                    {item.label === "Avisos" && student.notifications > 0 && (
+                    {item.label === "Comunicados" && student.notifications > 0 && (
                       <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-black ${
                         active ? "bg-white text-[#E4252A]" : "bg-[#E4252A] text-white"}`}>
                         {student.notifications}
+                      </span>
+                    )}
+                    {item.label === "Chat" && unreadChat > 0 && (
+                      <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-black ${
+                        active ? "bg-white text-[#E4252A]" : "bg-[#E4252A] text-white"}`}>
+                        {unreadChat}
                       </span>
                     )}
                   </Link>
