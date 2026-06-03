@@ -43,19 +43,22 @@ export function MissionSection() {
             return (
               <article
                 key={item.title}
-                className="rounded-[2rem] bg-white p-7 text-center shadow-lg"
+                className="overflow-hidden rounded-[2rem] bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#071D5B] text-white">
-                  <Icon size={30} />
+                <div className="h-1.5 bg-linear-to-r from-[#071D5B] via-[#0057D9] to-[#071D5B]" />
+                <div className="p-7 text-center">
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-[#071D5B] to-[#0057D9] text-white shadow-lg">
+                    <Icon size={30} />
+                  </div>
+
+                  <h3 className="text-2xl font-black text-[#071D5B]">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-4 leading-7 text-slate-700">
+                    {item.description}
+                  </p>
                 </div>
-
-                <h3 className="text-2xl font-black text-[#071D5B]">
-                  {item.title}
-                </h3>
-
-                <p className="mt-4 leading-7 text-slate-700">
-                  {item.description}
-                </p>
               </article>
             )
           })}

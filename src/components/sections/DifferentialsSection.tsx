@@ -49,7 +49,9 @@ const differentials = [
 
 export function DifferentialsSection() {
   return (
-    <section className="bg-[#FFFFFF] py-16 sm:py-20">
+    <section className="relative overflow-hidden bg-[#FAFBFF] py-16 sm:py-20">
+      <div className="absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#0057D9]/8 blur-3xl" />
+      <div className="absolute -left-24 bottom-10 h-64 w-64 rounded-full bg-[#E4252A]/6 blur-3xl" />
       <Container>
         <div className="mx-auto max-w-3xl text-center">
           <span className="font-bold uppercase tracking-[0.3em] text-[#E4252A]">
@@ -74,9 +76,9 @@ export function DifferentialsSection() {
             return (
               <article
                 key={item.title}
-                className="rounded-[2rem] border border-[#071D5B]/5 bg-[#FFFFFF] p-6 shadow-sm transition-shadow hover:shadow-xl"
+                className="rounded-[2rem] border border-[#071D5B]/5 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFFFFF] text-[#071D5B] shadow-md">
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-[#071D5B] to-[#0057D9] text-white shadow-lg">
                   <Icon size={28} />
                 </div>
 

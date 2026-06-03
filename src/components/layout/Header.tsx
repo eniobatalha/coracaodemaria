@@ -7,7 +7,7 @@ import {
 
 export function Header() {
   return (
-    <header className="fixed left-0 top-0 z-[999] w-full border-b border-slate-200 bg-[#FFFFFF] shadow-sm">
+    <header className="fixed left-0 top-0 z-[999] w-full border-b border-[#071D5B]/10 bg-white/95 shadow-sm backdrop-blur-lg">
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <a href="#inicio" className="flex items-center">
           <Image
@@ -47,7 +47,7 @@ export function Header() {
 
           <a
             href="#escolher-unidade-whatsapp"
-            className="ml-2 rounded-full bg-[#E4252A] px-5 py-3 text-sm font-black text-white shadow-lg transition hover:scale-105 hover:bg-[#c91f24]"
+            className="ml-2 rounded-full bg-linear-to-r from-[#E4252A] to-[#c91f24] px-5 py-3 text-sm font-black text-white shadow-lg shadow-[#E4252A]/30 transition hover:scale-105 hover:shadow-xl hover:shadow-[#E4252A]/40"
           >
             Matricule seu filho
           </a>
@@ -104,7 +104,7 @@ export function Header() {
                 href={item.href}
                 target={item.external ? "_blank" : undefined}
                 rel={item.external ? "noopener noreferrer" : undefined}
-                className="rounded-2xl bg-[#071D5B] px-5 py-4 text-base font-black text-white shadow-md transition active:scale-[0.98]"
+                className="rounded-2xl bg-linear-to-r from-[#071D5B] to-[#0057D9] px-5 py-4 text-base font-black text-white shadow-md transition active:scale-[0.98]"
               >
                 {item.label}
               </a>
@@ -112,7 +112,7 @@ export function Header() {
 
             <a
               href="#escolher-unidade-whatsapp"
-              className="rounded-2xl bg-[#E4252A] px-5 py-4 text-center text-base font-black text-white shadow-lg transition active:scale-[0.98]"
+              className="rounded-2xl bg-linear-to-r from-[#E4252A] to-[#c91f24] px-5 py-4 text-center text-base font-black text-white shadow-lg transition active:scale-[0.98]"
             >
               Matricule seu filho
             </a>

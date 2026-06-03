@@ -38,16 +38,18 @@ export function PedagogySection() {
             </p>
           </div>
 
-          <div className="rounded-[2.5rem] bg-white p-6 shadow-xl sm:p-8">
-            <h3 className="text-2xl font-black text-[#071D5B]">
-              Pilares da aprendizagem
-            </h3>
+          <div className="overflow-hidden rounded-[2.5rem] bg-white shadow-xl">
+            <div className="bg-linear-to-r from-[#071D5B] to-[#0057D9] px-6 py-5 sm:px-8">
+              <h3 className="text-2xl font-black text-white">
+                Pilares da aprendizagem
+              </h3>
+            </div>
 
-            <div className="mt-6 grid gap-4">
+            <div className="grid gap-3 p-6 sm:p-8">
               {pillars.map((pillar) => (
                 <div
                   key={pillar}
-                  className="flex items-center gap-3 rounded-2xl bg-[#EAFBFF] p-4"
+                  className="flex items-center gap-3 rounded-2xl border-l-4 border-[#0057D9] bg-[#EAFBFF] p-4"
                 >
                   <CheckCircle2 className="shrink-0 text-[#E4252A]" />
                   <span className="font-bold text-[#071D5B]">{pillar}</span>

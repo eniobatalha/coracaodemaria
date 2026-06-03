@@ -30,7 +30,9 @@ const segments = [
 
 export function SegmentsSection() {
   return (
-    <section className="bg-[#071D5B] py-16 text-white sm:py-20">
+    <section className="relative overflow-hidden bg-linear-to-br from-[#071D5B] via-[#0a2470] to-[#071D5B] py-16 text-white sm:py-20">
+      <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#0057D9]/25 blur-3xl" />
+      <div className="absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-[#E4252A]/15 blur-3xl" />
       <Container>
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
