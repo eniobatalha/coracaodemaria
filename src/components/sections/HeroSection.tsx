@@ -9,7 +9,7 @@ import {
   LogIn,
   Music,
   Sparkles,
-  WalletCards,
+  IdCardLanyard,
 } from "lucide-react"
 import { Container } from "@/components/ui/Container"
 import { schoolInfo } from "@/constants/school"
@@ -105,11 +105,13 @@ export function HeroSection() {
             </a>
 
             <a
-              href="#modulo-financeiro-em-desenvolvimento"
+              href="/portal-funcionario"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#071D5B] px-7 py-4 text-base font-black text-white shadow-xl ring-2 ring-[#FFFFFF]/70 transition hover:scale-105"
             >
-              <WalletCards size={20} />
-              2ª Via e Pagamentos
+              <IdCardLanyard size={20} />
+              Acessar Portal do Funcionário
             </a>
           </div>
 

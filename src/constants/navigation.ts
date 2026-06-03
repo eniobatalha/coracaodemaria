@@ -24,8 +24,8 @@ export const systemNavigationItems = [
     external: true,
   },
   {
-    label: "Portal Financeiro",
-    href: "#modulo-financeiro-em-desenvolvimento",
-    external: false,
+    label: "Portal do Funcionário",
+    href: "/portal-funcionario",
+    external: true,
   },
 ]
