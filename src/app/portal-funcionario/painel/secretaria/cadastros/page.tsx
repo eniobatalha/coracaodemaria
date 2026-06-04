@@ -6,10 +6,93 @@ import {
   Mail, MapPin, Pencil, Plus, School, Trash2, User, Users, X,
 } from "lucide-react"
 import {
-  professoresApi, turmasApi, alunosApi, responsaveisApi,
-  type Professor, type Turma, type Aluno, type Responsavel,
-} from "@/lib/api/cadastros"
-import { ApiError } from "@/lib/api/client"
+  loadProfessores, saveProfessores,
+  loadTurmas, saveTurmas,
+  loadAlunos, saveAlunos,
+  nextMatricula,
+  type ProfessorCadastrado, type TurmaCadastrada, type AlunoCadastrado,
+} from "@/lib/portal-funcionario/cadastros-data"
+import { MOCK_GUARDIANS } from "@/lib/portal/mock-data"
+
+// ── Tipos locais (alinhados com o que a UI espera) ────────────────────────────
+
+type MockProf = {
+  id: string; nome: string; usuario: string; email: string; cargo: string; ativo: boolean
+}
+
+type MockTurma = {
+  id: string; serie: string; turma: string; turno: "Manhã"|"Tarde"; unidade: "Cabo"|"Gaibu"
+  label: string; professor_id: string|null
+  professor: { id: string; nome: string }|null
+  total_alunos: number; ativo: boolean
+}
+
+type MockAluno = {
+  id: string; nome: string; genero: "M"|"F"; matricula: string
+  turma_id: string|null
+  turma: { id: string; label: string; serie: string; turma: string; turno: string; unidade: string }|null
+  responsavel_id: string|null
+  responsavel: { id: string; nome: string; email: string }|null
+  ativo: boolean
+}
+
+type MockResponsavel = {
+  id: string; nome: string; email: string
+  email_confirmado: boolean; email_pendente: string|null
+  status_email: "confirmado"|"aguardando"|"troca_pendente"; ativo: boolean
+}
+
+// ── Seed de responsáveis (baseado nos MOCK_GUARDIANS) ─────────────────────────
+
+const KEY_RESP = "pf_cad_responsaveis"
+
+function loadResponsaveis(): MockResponsavel[] {
+  try {
+    const raw = sessionStorage.getItem(KEY_RESP)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  const seed: MockResponsavel[] = Object.values(MOCK_GUARDIANS).map(g => ({
+    id: g.id, nome: g.name, email: g.email,
+    email_confirmado: true, email_pendente: null,
+    status_email: "confirmado", ativo: true,
+  }))
+  sessionStorage.setItem(KEY_RESP, JSON.stringify(seed))
+  return seed
+}
+
+function saveResponsaveis(data: MockResponsavel[]) {
+  try { sessionStorage.setItem(KEY_RESP, JSON.stringify(data)) } catch { /* ignore */ }
+}
+
+// ── Adaptadores mock → UI ─────────────────────────────────────────────────────
+
+function toMockProf(p: ProfessorCadastrado): MockProf {
+  return { id: p.id, nome: p.nome, usuario: p.login, email: p.email, cargo: "Professor", ativo: true }
+}
+
+function toMockTurma(t: TurmaCadastrada, profs: ProfessorCadastrado[], alunos: AlunoCadastrado[]): MockTurma {
+  const prof = t.professorId ? profs.find(p => p.id === t.professorId) ?? null : null
+  return {
+    id: t.id, serie: t.serie, turma: t.turma, turno: t.turno, unidade: t.unidade,
+    label: t.label, professor_id: t.professorId,
+    professor: prof ? { id: prof.id, nome: prof.nome } : null,
+    total_alunos: alunos.filter(a => a.turmaId === t.id).length,
+    ativo: true,
+  }
+}
+
+function toMockAluno(a: AlunoCadastrado, turmas: TurmaCadastrada[], resp: MockResponsavel[]): MockAluno {
+  const turma = turmas.find(t => t.id === a.turmaId) ?? null
+  const responsavel = resp.find(r => r.email === a.responsavelEmail) ?? null
+  return {
+    id: a.id, nome: a.nome, genero: a.genero, matricula: a.matricula,
+    turma_id: a.turmaId || null,
+    turma: turma ? { id: turma.id, label: turma.label, serie: turma.serie, turma: turma.turma, turno: turma.turno, unidade: turma.unidade } : null,
+    responsavel_id: responsavel?.id ?? null,
+    responsavel: responsavel ? { id: responsavel.id, nome: responsavel.nome, email: responsavel.email } : null,
+    ativo: true,
+  }
+}
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -36,8 +119,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-const inp =
-  "rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#4A0010] outline-none transition focus:border-[#C71F2D] focus:ring-2 focus:ring-[#C71F2D]/10 placeholder:text-slate-300 appearance-none"
+const inp = "rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-[#4A0010] outline-none transition focus:border-[#C71F2D] focus:ring-2 focus:ring-[#C71F2D]/10 placeholder:text-slate-300 appearance-none"
 
 function InpIcon({ icon: Icon, ...props }: { icon: React.ElementType } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
@@ -67,9 +149,7 @@ function SaveBtn({ loading, label }: { loading: boolean; label: string }) {
 }
 
 function ErrorMsg({ msg }: { msg: string }) {
-  return msg ? (
-    <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-bold text-[#C71F2D]">{msg}</p>
-  ) : null
+  return msg ? <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-bold text-[#C71F2D]">{msg}</p> : null
 }
 
 function EmptyState({ label }: { label: string }) {
@@ -81,18 +161,7 @@ function EmptyState({ label }: { label: string }) {
   )
 }
 
-function LoadingState() {
-  return (
-    <div className="flex items-center justify-center py-16">
-      <span className="h-8 w-8 animate-spin rounded-full border-4 border-[#4A0010]/20 border-t-[#4A0010]" />
-    </div>
-  )
-}
-
-// ── Página principal ──────────────────────────────────────────────────────────
-
-// ── Badge de status de e-mail ─────────────────────────────────────────────────
-function StatusBadge({ status }: { status: Responsavel["status_email"] }) {
+function StatusBadge({ status }: { status: MockResponsavel["status_email"] }) {
   const map = {
     confirmado:     { label: "Confirmado",     cls: "bg-emerald-100 text-emerald-700" },
     aguardando:     { label: "Aguardando",     cls: "bg-amber-100 text-amber-700"    },
@@ -105,52 +174,42 @@ function StatusBadge({ status }: { status: Responsavel["status_email"] }) {
 // ── Página principal ──────────────────────────────────────────────────────────
 
 export default function CadastrosPage() {
-  const [tab, setTab]                 = useState<Tab>("professores")
-  const [professores, setProfessores] = useState<Professor[]>([])
-  const [turmas, setTurmas]           = useState<Turma[]>([])
-  const [alunos, setAlunos]           = useState<Aluno[]>([])
-  const [responsaveis, setResponsaveis] = useState<Responsavel[]>([])
+  const [tab, setTab]                   = useState<Tab>("professores")
+  const [professores, setProfessores]   = useState<MockProf[]>([])
+  const [turmas, setTurmas]             = useState<MockTurma[]>([])
+  const [alunos, setAlunos]             = useState<MockAluno[]>([])
+  const [responsaveis, setResponsaveis] = useState<MockResponsavel[]>([])
 
-  const [loading, setLoading]         = useState(false)
   const [saving,  setSaving]          = useState(false)
   const [formErr, setFormErr]         = useState("")
   const [showForm, setShowForm]       = useState(false)
-  const [editingId, setEditingId]     = useState<number | null>(null)
-  const [deletingId, setDeletingId]   = useState<number | null>(null)
-  // Estado inline de "alterar e-mail" (separado do form de criar/editar)
-  const [alterandoEmailId, setAlterandoEmailId] = useState<number | null>(null)
+  const [editingId, setEditingId]     = useState<string | null>(null)
+  const [deletingId, setDeletingId]   = useState<string | null>(null)
+  const [alterandoEmailId, setAlterandoEmailId] = useState<string | null>(null)
   const [novoEmail, setNovoEmail]     = useState("")
   const [emailErr, setEmailErr]       = useState("")
   const [emailMsg, setEmailMsg]       = useState("")
 
-  // ── Carrega dados da API ───────────────────────────────────────────────────
+  // ── Carregadores mock ──────────────────────────────────────────────────────
 
-  const carregarProfessores = useCallback(async () => {
-    setLoading(true)
-    try { setProfessores((await professoresApi.listar()).professores) }
-    catch { /* silencia — mostrado como lista vazia */ }
-    finally { setLoading(false) }
+  const carregarProfessores = useCallback(() => {
+    setProfessores(loadProfessores().map(toMockProf))
   }, [])
 
-  const carregarTurmas = useCallback(async () => {
-    setLoading(true)
-    try { setTurmas((await turmasApi.listar()).turmas) }
-    catch { }
-    finally { setLoading(false) }
+  const carregarTurmas = useCallback(() => {
+    const rawProfs  = loadProfessores()
+    const rawAlunos = loadAlunos()
+    setTurmas(loadTurmas().map(t => toMockTurma(t, rawProfs, rawAlunos)))
   }, [])
 
-  const carregarAlunos = useCallback(async () => {
-    setLoading(true)
-    try { setAlunos((await alunosApi.listar()).alunos) }
-    catch { }
-    finally { setLoading(false) }
+  const carregarAlunos = useCallback(() => {
+    const rawTurmas = loadTurmas()
+    const resp      = loadResponsaveis()
+    setAlunos(loadAlunos().map(a => toMockAluno(a, rawTurmas, resp)))
   }, [])
 
-  const carregarResponsaveis = useCallback(async () => {
-    setLoading(true)
-    try { setResponsaveis((await responsaveisApi.listar()).responsaveis) }
-    catch { }
-    finally { setLoading(false) }
+  const carregarResponsaveis = useCallback(() => {
+    setResponsaveis(loadResponsaveis())
   }, [])
 
   useEffect(() => {
@@ -158,197 +217,152 @@ export default function CadastrosPage() {
     else if (tab === "turmas")    carregarTurmas()
     else if (tab === "alunos")    carregarAlunos()
     else                          carregarResponsaveis()
-    setShowForm(false)
-    setEditingId(null)
-    setDeletingId(null)
-    setAlterandoEmailId(null)
-    setFormErr("")
-    setEmailMsg("")
+    setShowForm(false); setEditingId(null); setDeletingId(null)
+    setAlterandoEmailId(null); setFormErr(""); setEmailMsg("")
   }, [tab, carregarProfessores, carregarTurmas, carregarAlunos, carregarResponsaveis])
 
   // ── Helpers de form ────────────────────────────────────────────────────────
 
-  function cancelarForm() {
-    setShowForm(false)
-    setEditingId(null)
-    setFormErr("")
-  }
+  function cancelarForm() { setShowForm(false); setEditingId(null); setFormErr("") }
+  function iniciarEdicao(id: string) { setEditingId(id); setShowForm(true); setFormErr(""); setDeletingId(null) }
+  function toggleDelete(id: string) { setDeletingId(prev => prev === id ? null : id); setEditingId(null); setShowForm(false) }
 
-  function iniciarEdicao(id: number) {
-    setEditingId(id)
-    setShowForm(true)
-    setFormErr("")
-    setDeletingId(null)
-  }
-
-  function toggleDelete(id: number) {
-    setDeletingId(prev => prev === id ? null : id)
-    setEditingId(null)
-    setShowForm(false)
-  }
-
-  async function confirmarDelete(del: () => Promise<{ mensagem: string }>, recarregar: () => Promise<void>) {
-    try {
-      await del()
-      setDeletingId(null)
-      await recarregar()
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : "Erro ao excluir")
+  function confirmarDelete(id: string) {
+    if (tab === "professores") {
+      const updated = loadProfessores().filter(p => p.id !== id)
+      saveProfessores(updated); setDeletingId(null); carregarProfessores()
+    } else if (tab === "turmas") {
+      const updated = loadTurmas().filter(t => t.id !== id)
+      saveTurmas(updated); setDeletingId(null); carregarTurmas()
+    } else if (tab === "alunos") {
+      const updated = loadAlunos().filter(a => a.id !== id)
+      saveAlunos(updated); setDeletingId(null); carregarAlunos()
+    } else {
+      const updated = loadResponsaveis().filter(r => r.id !== id)
+      saveResponsaveis(updated); setDeletingId(null); carregarResponsaveis()
     }
   }
 
-  function currentProf(): Professor | undefined {
-    return professores.find(p => p.id === editingId)
-  }
-  function currentTurma(): Turma | undefined {
-    return turmas.find(t => t.id === editingId)
-  }
-  function currentAluno(): Aluno | undefined {
-    return alunos.find(a => a.id === editingId)
-  }
+  function currentProf()  { return loadProfessores().find(p => p.id === editingId) }
+  function currentTurma() { return loadTurmas().find(t => t.id === editingId) }
+  function currentAluno() { return loadAlunos().find(a => a.id === editingId) }
 
   // ── Handlers de submit ─────────────────────────────────────────────────────
 
-  async function submitProfessor(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setFormErr("")
+  function submitProfessor(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setFormErr("")
     const fd  = new FormData(e.currentTarget)
     const get = (k: string) => String(fd.get(k) ?? "").trim()
-
     setSaving(true)
-    try {
-      if (editingId) {
-        const patch: Record<string, string> = {}
-        if (get("nome"))    patch.nome    = get("nome")
-        if (get("usuario")) patch.usuario = get("usuario")
-        if (get("email"))   patch.email   = get("email")
-        if (get("senha"))   patch.senha   = get("senha")
-        await professoresApi.editar(editingId, patch)
-      } else {
-        await professoresApi.criar({
-          nome: get("nome"), usuario: get("usuario"),
-          email: get("email"),
-          senha: get("senha"),
-        })
-      }
-      cancelarForm()
-      await carregarProfessores()
-    } catch (err) {
-      setFormErr(err instanceof ApiError ? err.message : "Erro ao salvar professor")
-    } finally {
-      setSaving(false)
-    }
+    setTimeout(() => {
+      try {
+        const profs = loadProfessores()
+        if (editingId) {
+          const idx = profs.findIndex(p => p.id === editingId)
+          if (idx >= 0) {
+            if (get("nome"))    profs[idx].nome  = get("nome")
+            if (get("usuario")) profs[idx].login = get("usuario")
+            if (get("email"))   profs[idx].email = get("email")
+          }
+        } else {
+          profs.push({ id: `prof-${Date.now()}`, nome: get("nome"), login: get("usuario"), email: get("email"), turmaIds: [] })
+        }
+        saveProfessores(profs); cancelarForm(); carregarProfessores()
+      } finally { setSaving(false) }
+    }, 300)
   }
 
-  async function submitTurma(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setFormErr("")
-    const fd    = new FormData(e.currentTarget)
-    const get   = (k: string) => String(fd.get(k) ?? "").trim()
-    const profId = Number(fd.get("professor_id")) || null
-
-    setSaving(true)
-    try {
-      if (editingId) {
-        await turmasApi.editar(editingId, {
-          serie: get("serie"), turma: get("letra"),
-          turno: get("turno"), unidade: get("unidade"),
-          professor_id: profId,
-        })
-      } else {
-        await turmasApi.criar({
-          serie: get("serie"), turma: get("letra"),
-          turno: get("turno"), unidade: get("unidade"),
-          professor_id: profId,
-        })
-      }
-      cancelarForm()
-      await carregarTurmas()
-    } catch (err) {
-      setFormErr(err instanceof ApiError ? err.message : "Erro ao salvar turma")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function submitAluno(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setFormErr("")
+  function submitTurma(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setFormErr("")
     const fd     = new FormData(e.currentTarget)
     const get    = (k: string) => String(fd.get(k) ?? "").trim()
-    const turmaId = Number(fd.get("turmaId")) || null
-    const respId  = Number(fd.get("responsavelId")) || null
-
+    const profId = get("professor_id") || null
+    const serie  = get("serie"); const letra = get("letra")
+    const turno  = get("turno"); const unidade = get("unidade")
+    const label  = `${serie} ${letra} — ${turno}`
     setSaving(true)
-    try {
-      if (editingId) {
-        await alunosApi.editar(editingId, {
-          nome: get("nome"), genero: get("genero") as "M"|"F",
-          turma_id: turmaId, responsavel_id: respId,
-        })
-      } else {
-        await alunosApi.criar({
-          nome: get("nome"), genero: get("genero") as "M"|"F",
-          turma_id: turmaId, responsavel_id: respId,
-        })
-      }
-      cancelarForm()
-      await carregarAlunos()
-    } catch (err) {
-      setFormErr(err instanceof ApiError ? err.message : "Erro ao salvar aluno")
-    } finally {
-      setSaving(false)
-    }
+    setTimeout(() => {
+      try {
+        const turmas = loadTurmas()
+        if (editingId) {
+          const idx = turmas.findIndex(t => t.id === editingId)
+          if (idx >= 0) {
+            turmas[idx] = { ...turmas[idx], serie, turma: letra, turno: turno as "Manhã"|"Tarde",
+              unidade: unidade as "Cabo"|"Gaibu", label, professorId: profId }
+          }
+        } else {
+          turmas.push({ id: `turma-${Date.now()}`, serie, turma: letra,
+            turno: turno as "Manhã"|"Tarde", unidade: unidade as "Cabo"|"Gaibu",
+            label, professorId: profId, alunosIds: [] })
+        }
+        saveTurmas(turmas); cancelarForm(); carregarTurmas()
+      } finally { setSaving(false) }
+    }, 300)
   }
 
-  // ── Handlers de responsáveis ──────────────────────────────────────────────
+  function submitAluno(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setFormErr("")
+    const fd      = new FormData(e.currentTarget)
+    const get     = (k: string) => String(fd.get(k) ?? "").trim()
+    const turmaId = get("turmaId") || ""
+    const respId  = get("responsavelId") || ""
+    const resp    = loadResponsaveis().find(r => r.id === respId)
+    setSaving(true)
+    setTimeout(() => {
+      try {
+        const alunos = loadAlunos()
+        if (editingId) {
+          const idx = alunos.findIndex(a => a.id === editingId)
+          if (idx >= 0) {
+            alunos[idx] = { ...alunos[idx], nome: get("nome"),
+              genero: get("genero") as "M"|"F", turmaId,
+              responsavelNome: resp?.nome ?? alunos[idx].responsavelNome,
+              responsavelEmail: resp?.email ?? alunos[idx].responsavelEmail }
+          }
+        } else {
+          const matricula = nextMatricula(alunos)
+          alunos.push({ id: `aluno-${Date.now()}`, nome: get("nome"),
+            genero: get("genero") as "M"|"F", matricula, turmaId,
+            responsavelNome: resp?.nome ?? "", responsavelEmail: resp?.email ?? "" })
+        }
+        saveAlunos(alunos); cancelarForm(); carregarAlunos()
+      } finally { setSaving(false) }
+    }, 300)
+  }
 
-  async function submitResponsavel(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setFormErr("")
+  function submitResponsavel(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setFormErr("")
     const fd  = new FormData(e.currentTarget)
     const get = (k: string) => String(fd.get(k) ?? "").trim()
-
     setSaving(true)
-    try {
-      if (editingId) {
-        await responsaveisApi.editarNome(editingId, get("nome"))
-      } else {
-        await responsaveisApi.criar({ nome: get("nome"), email: get("email") })
-      }
-      cancelarForm()
-      await carregarResponsaveis()
-    } catch (err) {
-      setFormErr(err instanceof ApiError ? err.message : "Erro ao salvar responsável")
-    } finally {
-      setSaving(false)
-    }
+    setTimeout(() => {
+      try {
+        const resp = loadResponsaveis()
+        if (editingId) {
+          const idx = resp.findIndex(r => r.id === editingId)
+          if (idx >= 0) resp[idx].nome = get("nome")
+        } else {
+          resp.push({ id: `resp-${Date.now()}`, nome: get("nome"), email: get("email"),
+            email_confirmado: false, email_pendente: null, status_email: "aguardando", ativo: true })
+        }
+        saveResponsaveis(resp); cancelarForm(); carregarResponsaveis()
+      } finally { setSaving(false) }
+    }, 300)
   }
 
-  async function handleAlterarEmail(respId: number) {
+  function handleAlterarEmail(respId: string) {
     if (!novoEmail.trim()) { setEmailErr("Informe o novo e-mail."); return }
     setEmailErr("")
-    setSaving(true)
-    try {
-      const res = await responsaveisApi.alterarEmail(respId, novoEmail.trim())
-      setEmailMsg(res.mensagem)
-      setNovoEmail("")
-      setAlterandoEmailId(null)
-      await carregarResponsaveis()
-    } catch (err) {
-      setEmailErr(err instanceof ApiError ? err.message : "Erro ao alterar e-mail")
-    } finally {
-      setSaving(false)
-    }
+    const resp = loadResponsaveis()
+    const idx  = resp.findIndex(r => r.id === respId)
+    if (idx >= 0) { resp[idx].email_pendente = novoEmail.trim(); resp[idx].status_email = "troca_pendente" }
+    saveResponsaveis(resp)
+    setEmailMsg("Alteração de e-mail registrada (e-mail de confirmação seria enviado em produção).")
+    setNovoEmail(""); setAlterandoEmailId(null); carregarResponsaveis()
   }
 
-  async function handleReenviarEmail(respId: number) {
-    try {
-      const res = await responsaveisApi.reenviarConfirmacao(respId)
-      setEmailMsg(res.mensagem)
-    } catch (err) {
-      setEmailMsg(err instanceof ApiError ? err.message : "Erro ao reenviar e-mail")
-    }
+  function handleReenviarEmail(respId: string) {
+    setEmailMsg(`E-mail de confirmação seria reenviado em produção (ID: ${respId}).`)
   }
 
   // ── Abas ───────────────────────────────────────────────────────────────────
@@ -356,13 +370,13 @@ export default function CadastrosPage() {
   const tabs: { key: Tab; label: string; icon: React.ElementType; count: number }[] = [
     { key: "professores",  label: "Professores",  icon: GraduationCap, count: professores.length  },
     { key: "turmas",       label: "Turmas",       icon: Users,          count: turmas.length       },
-    { key: "responsaveis", label: "Responsáveis",  icon: User,           count: responsaveis.length },
-    { key: "alunos",       label: "Alunos",        icon: BookOpen,       count: alunos.length       },
+    { key: "responsaveis", label: "Responsáveis", icon: User,           count: responsaveis.length },
+    { key: "alunos",       label: "Alunos",       icon: BookOpen,       count: alunos.length       },
   ]
 
   const addLabel =
-    tab === "professores"  ? "Novo professor"  :
-    tab === "turmas"       ? "Nova turma"      :
+    tab === "professores"  ? "Novo professor"   :
+    tab === "turmas"       ? "Nova turma"       :
     tab === "responsaveis" ? "Novo responsável" : "Novo aluno"
 
   const isFormOpen = showForm || editingId !== null
@@ -371,8 +385,6 @@ export default function CadastrosPage() {
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-
-      {/* Header */}
       <div className="mb-7">
         <h1 className="text-2xl font-black text-[#4A0010] sm:text-3xl">Cadastros</h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -398,8 +410,6 @@ export default function CadastrosPage() {
 
       {/* Painel */}
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-
-        {/* Cabeçalho do painel */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-base font-black capitalize text-[#4A0010]">
             {tabs.find(t => t.key === tab)?.label}
@@ -416,10 +426,9 @@ export default function CadastrosPage() {
         {isFormOpen && (
           <div className="border-b border-slate-100 bg-[#FFF5F5] p-6">
             <p className="mb-4 text-xs font-black uppercase tracking-wider text-[#C71F2D]">
-              {editingId ? `Editando ${tab === "professores" ? "professor" : tab === "turmas" ? "turma" : "aluno"}` : addLabel}
+              {editingId ? `Editando ${tab === "professores" ? "professor" : tab === "turmas" ? "turma" : "registro"}` : addLabel}
             </p>
 
-            {/* ── Form Professor ── */}
             {tab === "professores" && (
               <form onSubmit={submitProfessor} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Field label="Nome completo *">
@@ -428,7 +437,7 @@ export default function CadastrosPage() {
                 </Field>
                 <Field label={editingId ? "Login (username)" : "Login *"}>
                   <InpIcon icon={KeyRound} name="usuario" required={!editingId}
-                    placeholder="Ex: maria.silva" defaultValue={currentProf()?.usuario} />
+                    placeholder="Ex: maria.silva" defaultValue={currentProf()?.login} />
                 </Field>
                 <Field label={editingId ? "E-mail" : "E-mail *"}>
                   <InpIcon icon={Mail} name="email" type="email" required={!editingId}
@@ -445,7 +454,6 @@ export default function CadastrosPage() {
               </form>
             )}
 
-            {/* ── Form Turma ── */}
             {tab === "turmas" && (
               <form onSubmit={submitTurma} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Field label="Série *">
@@ -470,9 +478,9 @@ export default function CadastrosPage() {
                 </Field>
                 <Field label="Professor responsável">
                   <SelIcon icon={GraduationCap} name="professor_id"
-                    defaultValue={currentTurma()?.professor_id ?? ""}>
+                    defaultValue={currentTurma()?.professorId ?? ""}>
                     <option value="">Selecionar professor</option>
-                    {professores.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                    {loadProfessores().map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
                   </SelIcon>
                 </Field>
                 <div className="flex items-end gap-2">
@@ -482,7 +490,6 @@ export default function CadastrosPage() {
               </form>
             )}
 
-            {/* ── Form Aluno ── */}
             {tab === "alunos" && (
               <form onSubmit={submitAluno} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Field label="Nome completo *">
@@ -497,15 +504,17 @@ export default function CadastrosPage() {
                   </select>
                 </Field>
                 <Field label="Turma">
-                  <SelIcon icon={Users} name="turmaId" defaultValue={currentAluno()?.turma_id ?? ""}>
+                  <SelIcon icon={Users} name="turmaId" defaultValue={currentAluno()?.turmaId ?? ""}>
                     <option value="">Selecionar turma</option>
-                    {turmas.map(t => <option key={t.id} value={t.id}>{t.label} — {t.unidade}</option>)}
+                    {loadTurmas().map(t => <option key={t.id} value={t.id}>{t.label} — {t.unidade}</option>)}
                   </SelIcon>
                 </Field>
                 <Field label="Responsável">
-                  <SelIcon icon={User} name="responsavelId" defaultValue={currentAluno()?.responsavel_id ?? ""}>
+                  <SelIcon icon={User} name="responsavelId" defaultValue={
+                    loadResponsaveis().find(r => r.email === currentAluno()?.responsavelEmail)?.id ?? ""
+                  }>
                     <option value="">Selecionar responsável</option>
-                    {/* Lista dinâmica — idealmente viria da API; por ora listamos os do seed */}
+                    {loadResponsaveis().map(r => <option key={r.id} value={r.id}>{r.nome}</option>)}
                   </SelIcon>
                 </Field>
                 <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-1">
@@ -515,17 +524,15 @@ export default function CadastrosPage() {
               </form>
             )}
 
-            {/* ── Form Responsável ── */}
             {tab === "responsaveis" && (
               <form onSubmit={submitResponsavel} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Field label="Nome completo *">
                   <InpIcon icon={User} name="nome" required placeholder="Ex: Ana Barbosa"
-                    defaultValue={responsaveis.find(r => r.id === editingId)?.nome} />
+                    defaultValue={loadResponsaveis().find(r => r.id === editingId)?.nome} />
                 </Field>
                 {!editingId && (
                   <Field label="E-mail *">
-                    <InpIcon icon={Mail} name="email" type="email" required
-                      placeholder="responsavel@email.com" />
+                    <InpIcon icon={Mail} name="email" type="email" required placeholder="responsavel@email.com" />
                   </Field>
                 )}
                 <div className="flex items-end">
@@ -537,7 +544,7 @@ export default function CadastrosPage() {
           </div>
         )}
 
-        {/* Mensagem de feedback de e-mail (reenvio / troca) */}
+        {/* Feedback e-mail */}
         {emailMsg && tab === "responsaveis" && (
           <div className="border-b border-slate-100 bg-emerald-50 px-6 py-3">
             <p className="text-sm font-bold text-emerald-700">{emailMsg}</p>
@@ -546,262 +553,205 @@ export default function CadastrosPage() {
         )}
 
         {/* Listas */}
-        {loading ? <LoadingState /> : (
-
-          <>
-            {/* ── Lista Professores ── */}
-            {tab === "professores" && (
-              professores.length === 0 ? <EmptyState label="Nenhum professor cadastrado." /> : (
-                <div className="divide-y divide-slate-50">
-                  <div className="hidden grid-cols-[1fr_1fr_1.5fr_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
-                    <span>Nome</span><span>Login</span><span>E-mail</span><span />
-                  </div>
-                  {professores.map(p => (
-                    <div key={p.id} className={`px-6 py-4 transition ${deletingId === p.id ? "bg-red-50" : "hover:bg-slate-50"} lg:grid lg:grid-cols-[1fr_1fr_1.5fr_auto] lg:items-center lg:gap-4`}>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4A0010]/10 text-xs font-black text-[#4A0010]">
-                          {p.nome.split(" ").slice(0,2).map(n=>n[0]).join("")}
-                        </div>
-                        <span className="font-black text-[#4A0010]">{p.nome}</span>
-                      </div>
-                      <span className="mt-1 pl-12 text-sm text-slate-500 lg:mt-0 lg:pl-0">{p.usuario}</span>
-                      <span className="hidden text-sm text-slate-500 lg:block">{p.email}</span>
-                      <div className="mt-2 flex items-center gap-1 lg:mt-0">
-                        {deletingId === p.id ? (
-                          <>
-                            <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
-                            <button onClick={() => confirmarDelete(() => professoresApi.excluir(p.id), carregarProfessores)}
-                              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
-                            <button onClick={() => setDeletingId(null)}
-                              className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => iniciarEdicao(p.id)} title="Editar"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]">
-                              <Pencil size={15} />
-                            </button>
-                            <button onClick={() => toggleDelete(p.id)} title="Excluir"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600">
-                              <Trash2 size={15} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+        <>
+          {/* ── Professores ── */}
+          {tab === "professores" && (
+            professores.length === 0 ? <EmptyState label="Nenhum professor cadastrado." /> : (
+              <div className="divide-y divide-slate-50">
+                <div className="hidden grid-cols-[1fr_1fr_1.5fr_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
+                  <span>Nome</span><span>Login</span><span>E-mail</span><span />
                 </div>
-              )
-            )}
-
-            {/* ── Lista Turmas ── */}
-            {tab === "turmas" && (
-              turmas.length === 0 ? <EmptyState label="Nenhuma turma cadastrada." /> : (
-                <div className="divide-y divide-slate-50">
-                  <div className="hidden grid-cols-[1fr_auto_auto_1fr_auto_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
-                    <span>Turma</span><span>Turno</span><span>Unidade</span><span>Professor</span><span>Alunos</span><span />
-                  </div>
-                  {turmas.map(t => (
-                    <div key={t.id} className={`px-6 py-4 transition ${deletingId === t.id ? "bg-red-50" : "hover:bg-slate-50"} lg:grid lg:grid-cols-[1fr_auto_auto_1fr_auto_auto] lg:items-center lg:gap-4`}>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#C71F2D]/10">
-                          <Users size={16} className="text-[#C71F2D]" />
-                        </div>
-                        <div>
-                          <p className="font-black text-[#4A0010]">{t.label}</p>
-                          <p className="text-xs text-slate-400 lg:hidden">{t.unidade} · {t.professor?.nome ?? "Sem professor"}</p>
-                        </div>
+                {professores.map(p => (
+                  <div key={p.id} className={`px-6 py-4 transition ${deletingId === p.id ? "bg-red-50" : "hover:bg-slate-50"} lg:grid lg:grid-cols-[1fr_1fr_1.5fr_auto] lg:items-center lg:gap-4`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4A0010]/10 text-xs font-black text-[#4A0010]">
+                        {p.nome.split(" ").slice(0,2).map(n=>n[0]).join("")}
                       </div>
-                      <span className="hidden text-sm text-slate-500 lg:block">{t.turno}</span>
-                      <span className="hidden lg:block">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-black ${t.unidade === "Cabo" ? "bg-[#FF7A1C]/10 text-[#FF7A1C]" : "bg-[#0057D9]/10 text-[#0057D9]"}`}>
-                          {t.unidade}
-                        </span>
-                      </span>
-                      <span className="hidden items-center gap-1.5 text-sm text-slate-600 lg:flex">
-                        {t.professor ? <><GraduationCap size={13} className="shrink-0 text-slate-400" />{t.professor.nome}</> : <span className="italic text-slate-400">Sem professor</span>}
-                      </span>
-                      <span className="hidden lg:block">
-                        <span className="flex items-center gap-1 rounded-full bg-[#4A0010]/8 px-3 py-1 text-xs font-black text-[#4A0010]">
-                          <BookOpen size={11} />{t.total_alunos ?? 0} aluno{t.total_alunos !== 1 ? "s" : ""}
-                        </span>
-                      </span>
-                      <div className="mt-2 flex items-center gap-1 lg:mt-0">
-                        {deletingId === t.id ? (
-                          <>
-                            <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
-                            <button onClick={() => confirmarDelete(() => turmasApi.excluir(t.id), carregarTurmas)}
-                              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
-                            <button onClick={() => setDeletingId(null)}
-                              className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => iniciarEdicao(t.id)} title="Editar"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]">
-                              <Pencil size={15} />
-                            </button>
-                            <button onClick={() => toggleDelete(t.id)} title="Excluir"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600">
-                              <Trash2 size={15} />
-                            </button>
-                          </>
-                        )}
-                      </div>
+                      <span className="font-black text-[#4A0010]">{p.nome}</span>
                     </div>
-                  ))}
-                </div>
-              )
-            )}
-
-            {/* ── Lista Alunos ── */}
-            {tab === "alunos" && (
-              alunos.length === 0 ? <EmptyState label="Nenhum aluno cadastrado." /> : (
-                <div className="divide-y divide-slate-50">
-                  <div className="hidden grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
-                    <span>Mat.</span><span>Nome</span><span>Turma</span><span>Responsável</span><span />
-                  </div>
-                  {alunos.map(a => (
-                    <div key={a.id} className={`px-6 py-4 transition ${deletingId === a.id ? "bg-red-50" : "hover:bg-slate-50"} lg:grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] lg:items-center lg:gap-4`}>
-                      <span className="hidden shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-xs font-black text-slate-500 lg:inline-block">{a.matricula}</span>
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white ${a.genero === "F" ? "bg-[#C71F2D]" : "bg-[#071D5B]"}`}>
-                          {a.nome.split(" ").slice(0,2).map(n=>n[0]).join("")}
-                        </div>
-                        <div>
-                          <p className="font-black text-[#4A0010]">{a.nome}</p>
-                          <p className="text-xs text-slate-400 lg:hidden">Mat. {a.matricula} · {a.turma?.label ?? "Sem turma"}</p>
-                        </div>
-                      </div>
-                      <span className="hidden text-sm text-slate-700 lg:block">{a.turma?.label ?? <span className="italic text-slate-400">Sem turma</span>}</span>
-                      <div className="hidden flex-col lg:flex">
-                        <span className="text-sm text-slate-700">{a.responsavel?.nome ?? <span className="italic text-slate-400">Sem responsável</span>}</span>
-                        {a.responsavel && <span className="text-xs text-slate-400">{a.responsavel.email}</span>}
-                      </div>
-                      <div className="mt-2 flex items-center gap-1 lg:mt-0">
-                        {deletingId === a.id ? (
-                          <>
-                            <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
-                            <button onClick={() => confirmarDelete(() => alunosApi.excluir(a.id), carregarAlunos)}
-                              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
-                            <button onClick={() => setDeletingId(null)}
-                              className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => iniciarEdicao(a.id)} title="Editar"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]">
-                              <Pencil size={15} />
-                            </button>
-                            <button onClick={() => toggleDelete(a.id)} title="Excluir"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600">
-                              <Trash2 size={15} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            )}
-            {/* ── Lista Responsáveis ── */}
-            {tab === "responsaveis" && (
-              responsaveis.length === 0 ? <EmptyState label="Nenhum responsável cadastrado." /> : (
-                <div className="divide-y divide-slate-50">
-                  <div className="hidden grid-cols-[1fr_1.5fr_auto_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
-                    <span>Nome</span><span>E-mail</span><span>Status</span><span />
-                  </div>
-                  {responsaveis.map(r => (
-                    <div key={r.id} className={`px-6 py-4 transition ${deletingId === r.id ? "bg-red-50" : "hover:bg-slate-50"}`}>
-                      {/* Linha principal */}
-                      <div className="lg:grid lg:grid-cols-[1fr_1.5fr_auto_auto] lg:items-center lg:gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white ${r.email_confirmado ? "bg-[#4A0010]" : "bg-slate-400"}`}>
-                            {r.nome.split(" ").slice(0,2).map(n=>n[0]).join("")}
-                          </div>
-                          <span className="font-black text-[#4A0010]">{r.nome}</span>
-                        </div>
-                        <div className="mt-1 pl-12 lg:mt-0 lg:pl-0">
-                          <span className="text-sm text-slate-600">{r.email}</span>
-                          {r.email_pendente && (
-                            <p className="text-xs text-blue-500">Troca para: {r.email_pendente}</p>
-                          )}
-                        </div>
-                        <div className="mt-2 pl-12 lg:mt-0 lg:pl-0">
-                          <StatusBadge status={r.status_email} />
-                        </div>
-                        <div className="mt-2 flex items-center gap-1 lg:mt-0">
-                          {deletingId === r.id ? (
-                            <>
-                              <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
-                              <button onClick={() => confirmarDelete(() => responsaveisApi.excluir(r.id), carregarResponsaveis)}
-                                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
-                              <button onClick={() => setDeletingId(null)}
-                                className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => iniciarEdicao(r.id)} title="Editar nome"
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]">
-                                <Pencil size={15} />
-                              </button>
-                              <button
-                                onClick={() => { setAlterandoEmailId(prev => prev === r.id ? null : r.id); setNovoEmail(""); setEmailErr("") }}
-                                title="Alterar e-mail"
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-blue-100 hover:text-blue-600">
-                                <Mail size={15} />
-                              </button>
-                              {r.status_email !== "confirmado" && (
-                                <button onClick={() => handleReenviarEmail(r.id)} title="Reenviar e-mail"
-                                  className="rounded-lg bg-[#4A0010]/8 px-2.5 py-1.5 text-xs font-black text-[#4A0010] hover:bg-[#4A0010]/15">
-                                  Reenviar
-                                </button>
-                              )}
-                              <button onClick={() => toggleDelete(r.id)} title="Excluir"
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600">
-                                <Trash2 size={15} />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Inline: alterar e-mail */}
-                      {alterandoEmailId === r.id && (
-                        <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-                          <p className="mb-2 text-xs font-black uppercase tracking-wider text-blue-600">
-                            {r.email_confirmado ? "Alterar e-mail (envia confirmação ao novo endereço)" : "Corrigir e-mail (reenvia link de ativação)"}
-                          </p>
-                          <div className="flex gap-2">
-                            <div className="relative flex-1">
-                              <Mail size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
-                              <input
-                                type="email" value={novoEmail}
-                                onChange={e => { setNovoEmail(e.target.value); setEmailErr("") }}
-                                placeholder="novo@email.com"
-                                className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/10"
-                              />
-                            </div>
-                            <button onClick={() => handleAlterarEmail(r.id)} disabled={saving}
-                              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60">
-                              {saving ? "..." : "Salvar"}
-                            </button>
-                            <button onClick={() => { setAlterandoEmailId(null); setEmailErr("") }}
-                              className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-300">
-                              Cancelar
-                            </button>
-                          </div>
-                          {emailErr && <p className="mt-2 text-xs font-bold text-red-600">{emailErr}</p>}
-                        </div>
+                    <span className="mt-1 pl-12 text-sm text-slate-500 lg:mt-0 lg:pl-0">{p.usuario}</span>
+                    <span className="hidden text-sm text-slate-500 lg:block">{p.email}</span>
+                    <div className="mt-2 flex items-center gap-1 lg:mt-0">
+                      {deletingId === p.id ? (
+                        <>
+                          <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
+                          <button onClick={() => confirmarDelete(p.id)} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
+                          <button onClick={() => setDeletingId(null)} className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => iniciarEdicao(p.id)} title="Editar" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]"><Pencil size={15} /></button>
+                          <button onClick={() => toggleDelete(p.id)} title="Excluir" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600"><Trash2 size={15} /></button>
+                        </>
                       )}
                     </div>
-                  ))}
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* ── Turmas ── */}
+          {tab === "turmas" && (
+            turmas.length === 0 ? <EmptyState label="Nenhuma turma cadastrada." /> : (
+              <div className="divide-y divide-slate-50">
+                <div className="hidden grid-cols-[1fr_auto_auto_1fr_auto_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
+                  <span>Turma</span><span>Turno</span><span>Unidade</span><span>Professor</span><span>Alunos</span><span />
                 </div>
-              )
-            )}
-          </>
-        )}
+                {turmas.map(t => (
+                  <div key={t.id} className={`px-6 py-4 transition ${deletingId === t.id ? "bg-red-50" : "hover:bg-slate-50"} lg:grid lg:grid-cols-[1fr_auto_auto_1fr_auto_auto] lg:items-center lg:gap-4`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#C71F2D]/10">
+                        <Users size={16} className="text-[#C71F2D]" />
+                      </div>
+                      <div>
+                        <p className="font-black text-[#4A0010]">{t.label}</p>
+                        <p className="text-xs text-slate-400 lg:hidden">{t.unidade} · {t.professor?.nome ?? "Sem professor"}</p>
+                      </div>
+                    </div>
+                    <span className="hidden text-sm text-slate-500 lg:block">{t.turno}</span>
+                    <span className="hidden lg:block">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-black ${t.unidade === "Cabo" ? "bg-[#FF7A1C]/10 text-[#FF7A1C]" : "bg-[#0057D9]/10 text-[#0057D9]"}`}>{t.unidade}</span>
+                    </span>
+                    <span className="hidden items-center gap-1.5 text-sm text-slate-600 lg:flex">
+                      {t.professor ? <><GraduationCap size={13} className="shrink-0 text-slate-400" />{t.professor.nome}</> : <span className="italic text-slate-400">Sem professor</span>}
+                    </span>
+                    <span className="hidden lg:block">
+                      <span className="flex items-center gap-1 rounded-full bg-[#4A0010]/8 px-3 py-1 text-xs font-black text-[#4A0010]">
+                        <BookOpen size={11} />{t.total_alunos} aluno{t.total_alunos !== 1 ? "s" : ""}
+                      </span>
+                    </span>
+                    <div className="mt-2 flex items-center gap-1 lg:mt-0">
+                      {deletingId === t.id ? (
+                        <>
+                          <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
+                          <button onClick={() => confirmarDelete(t.id)} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
+                          <button onClick={() => setDeletingId(null)} className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => iniciarEdicao(t.id)} title="Editar" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]"><Pencil size={15} /></button>
+                          <button onClick={() => toggleDelete(t.id)} title="Excluir" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600"><Trash2 size={15} /></button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* ── Alunos ── */}
+          {tab === "alunos" && (
+            alunos.length === 0 ? <EmptyState label="Nenhum aluno cadastrado." /> : (
+              <div className="divide-y divide-slate-50">
+                <div className="hidden grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
+                  <span>Mat.</span><span>Nome</span><span>Turma</span><span>Responsável</span><span />
+                </div>
+                {alunos.map(a => (
+                  <div key={a.id} className={`px-6 py-4 transition ${deletingId === a.id ? "bg-red-50" : "hover:bg-slate-50"} lg:grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] lg:items-center lg:gap-4`}>
+                    <span className="hidden shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-xs font-black text-slate-500 lg:inline-block">{a.matricula}</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white ${a.genero === "F" ? "bg-[#C71F2D]" : "bg-[#071D5B]"}`}>
+                        {a.nome.split(" ").slice(0,2).map(n=>n[0]).join("")}
+                      </div>
+                      <div>
+                        <p className="font-black text-[#4A0010]">{a.nome}</p>
+                        <p className="text-xs text-slate-400 lg:hidden">Mat. {a.matricula} · {a.turma?.label ?? "Sem turma"}</p>
+                      </div>
+                    </div>
+                    <span className="hidden text-sm text-slate-700 lg:block">{a.turma?.label ?? <span className="italic text-slate-400">Sem turma</span>}</span>
+                    <div className="hidden flex-col lg:flex">
+                      <span className="text-sm text-slate-700">{a.responsavel?.nome ?? <span className="italic text-slate-400">Sem responsável</span>}</span>
+                      {a.responsavel && <span className="text-xs text-slate-400">{a.responsavel.email}</span>}
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 lg:mt-0">
+                      {deletingId === a.id ? (
+                        <>
+                          <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
+                          <button onClick={() => confirmarDelete(a.id)} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
+                          <button onClick={() => setDeletingId(null)} className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => iniciarEdicao(a.id)} title="Editar" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]"><Pencil size={15} /></button>
+                          <button onClick={() => toggleDelete(a.id)} title="Excluir" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600"><Trash2 size={15} /></button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* ── Responsáveis ── */}
+          {tab === "responsaveis" && (
+            responsaveis.length === 0 ? <EmptyState label="Nenhum responsável cadastrado." /> : (
+              <div className="divide-y divide-slate-50">
+                <div className="hidden grid-cols-[1fr_1.5fr_auto_auto] gap-4 bg-slate-50 px-6 py-3 text-xs font-black uppercase tracking-wider text-slate-400 lg:grid">
+                  <span>Nome</span><span>E-mail</span><span>Status</span><span />
+                </div>
+                {responsaveis.map(r => (
+                  <div key={r.id} className={`px-6 py-4 transition ${deletingId === r.id ? "bg-red-50" : "hover:bg-slate-50"}`}>
+                    <div className="lg:grid lg:grid-cols-[1fr_1.5fr_auto_auto] lg:items-center lg:gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white ${r.email_confirmado ? "bg-[#4A0010]" : "bg-slate-400"}`}>
+                          {r.nome.split(" ").slice(0,2).map(n=>n[0]).join("")}
+                        </div>
+                        <span className="font-black text-[#4A0010]">{r.nome}</span>
+                      </div>
+                      <div className="mt-1 pl-12 lg:mt-0 lg:pl-0">
+                        <span className="text-sm text-slate-600">{r.email}</span>
+                        {r.email_pendente && <p className="text-xs text-blue-500">Troca para: {r.email_pendente}</p>}
+                      </div>
+                      <div className="mt-2 pl-12 lg:mt-0 lg:pl-0"><StatusBadge status={r.status_email} /></div>
+                      <div className="mt-2 flex items-center gap-1 lg:mt-0">
+                        {deletingId === r.id ? (
+                          <>
+                            <span className="mr-1 text-xs font-bold text-red-600">Excluir?</span>
+                            <button onClick={() => confirmarDelete(r.id)} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-black text-white hover:bg-red-700">Sim</button>
+                            <button onClick={() => setDeletingId(null)} className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-300">Não</button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => iniciarEdicao(r.id)} title="Editar nome" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-[#4A0010]/10 hover:text-[#4A0010]"><Pencil size={15} /></button>
+                            <button onClick={() => { setAlterandoEmailId(prev => prev === r.id ? null : r.id); setNovoEmail(""); setEmailErr("") }} title="Alterar e-mail" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-blue-100 hover:text-blue-600"><Mail size={15} /></button>
+                            {r.status_email !== "confirmado" && (
+                              <button onClick={() => handleReenviarEmail(r.id)} title="Reenviar e-mail" className="rounded-lg bg-[#4A0010]/8 px-2.5 py-1.5 text-xs font-black text-[#4A0010] hover:bg-[#4A0010]/15">Reenviar</button>
+                            )}
+                            <button onClick={() => toggleDelete(r.id)} title="Excluir" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-600"><Trash2 size={15} /></button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {alterandoEmailId === r.id && (
+                      <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                        <p className="mb-2 text-xs font-black uppercase tracking-wider text-blue-600">Alterar e-mail</p>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Mail size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
+                            <input type="email" value={novoEmail}
+                              onChange={e => { setNovoEmail(e.target.value); setEmailErr("") }}
+                              placeholder="novo@email.com"
+                              className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/10" />
+                          </div>
+                          <button onClick={() => handleAlterarEmail(r.id)} disabled={saving}
+                            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60">
+                            {saving ? "..." : "Salvar"}
+                          </button>
+                          <button onClick={() => { setAlterandoEmailId(null); setEmailErr("") }}
+                            className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-300">Cancelar</button>
+                        </div>
+                        {emailErr && <p className="mt-2 text-xs font-bold text-red-600">{emailErr}</p>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+        </>
 
         {/* Rodapé com fluxo */}
         <div className="border-t border-slate-100 bg-slate-50 px-6 py-3">
@@ -814,7 +764,6 @@ export default function CadastrosPage() {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   )

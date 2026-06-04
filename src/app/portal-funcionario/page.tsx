@@ -5,8 +5,16 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Eye, EyeOff, LogIn } from "lucide-react"
-import { loginFuncionario } from "@/lib/api/auth"
-import { ApiError } from "@/lib/api/client"
+
+// ── Credenciais mock para demonstração ────────────────────────────────────────
+const MOCK_FUNCIONARIOS: Record<string, {
+  id: number; username: string; nome: string; cargo: string; tipo: string; senha: string
+}> = {
+  "secretaria":    { id: 1, username: "secretaria",    nome: "Ana Paula Ferreira", cargo: "Secretária",  tipo: "secretaria", senha: "123456" },
+  "diretora":      { id: 2, username: "diretora",      nome: "Iraê Coelho",        cargo: "Diretora",    tipo: "diretora",   senha: "123456" },
+  "paula.virginia":{ id: 3, username: "paula.virginia",nome: "Paula Virgínia",     cargo: "Professora",  tipo: "professor",  senha: "123456" },
+  "luana.marcela": { id: 4, username: "luana.marcela", nome: "Luana Marcela",      cargo: "Professora",  tipo: "professor",  senha: "123456" },
+}
 
 export default function PortalFuncionarioLoginPage() {
   const router = useRouter()
@@ -16,7 +24,7 @@ export default function PortalFuncionarioLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleLogin(e: React.FormEvent) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
 
@@ -26,38 +34,31 @@ export default function PortalFuncionarioLoginPage() {
     }
 
     setLoading(true)
-    try {
-      const session = await loginFuncionario(username.toLowerCase().trim(), password)
 
-      // Armazena no formato Employee (compatível com o painel/layout.tsx)
+    // Simula latência de rede
+    setTimeout(() => {
+      const user = MOCK_FUNCIONARIOS[username.toLowerCase().trim()]
+
+      if (!user || user.senha !== password) {
+        setError("Usuário ou senha incorretos.")
+        setLoading(false)
+        return
+      }
+
       localStorage.setItem(
         "portal_funcionario",
         JSON.stringify({
-          id: session.id,
-          username: session.username,
-          nome: session.nome,
-          cargo: session.cargo,
-          tipo: session.tipo,
+          id:       user.id,
+          username: user.username,
+          nome:     user.nome,
+          cargo:    user.cargo,
+          tipo:     user.tipo,
         }),
       )
-      localStorage.setItem("portal_funcionario_token", session.access_token)
+      localStorage.setItem("portal_funcionario_token", "mock_token_demo")
 
       router.push("/portal-funcionario/painel")
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          setError("Usuário ou senha incorretos.")
-        } else if (err.status === 403) {
-          setError(err.message)
-        } else {
-          setError("Erro ao fazer login. Tente novamente.")
-        }
-      } else {
-        setError("Não foi possível conectar ao servidor. Verifique se a API está rodando.")
-      }
-    } finally {
-      setLoading(false)
-    }
+    }, 600)
   }
 
   return (

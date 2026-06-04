@@ -5,9 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Eye, EyeOff, LogIn } from "lucide-react"
-import { loginResponsavel } from "@/lib/api/auth"
-import { ApiError } from "@/lib/api/client"
-import { MOCK_GUARDIANS } from "@/lib/portal/mock-data"
+import { MOCK_GUARDIANS, MOCK_PASSWORD } from "@/lib/portal/mock-data"
 
 export default function PortalLoginPage() {
   const router = useRouter()
@@ -17,7 +15,7 @@ export default function PortalLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleLogin(e: React.FormEvent) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
 
@@ -27,39 +25,24 @@ export default function PortalLoginPage() {
     }
 
     setLoading(true)
-    try {
-      const session = await loginResponsavel(email, password)
 
-      // Resolve o guardian do mock pelo e-mail para manter o vínculo com os
-      // alunos (student.guardianIds) enquanto os dados ainda são locais.
-      const mockGuardian = Object.values(MOCK_GUARDIANS).find(
-        (g) => g.email.toLowerCase() === email.toLowerCase(),
+    // Simula latência de rede
+    setTimeout(() => {
+      const guardian = Object.values(MOCK_GUARDIANS).find(
+        (g) => g.email.toLowerCase() === email.toLowerCase().trim(),
       )
 
-      // Armazena os dados de sessão compatíveis com o layout existente
-      const guardianToStore = mockGuardian
-        ? mockGuardian
-        : { id: session.id, name: session.name, email: session.email }
+      if (!guardian || password !== MOCK_PASSWORD) {
+        setError("E-mail ou senha incorretos.")
+        setLoading(false)
+        return
+      }
 
-      localStorage.setItem("portal_guardian", JSON.stringify(guardianToStore))
-      localStorage.setItem("portal_access_token", session.access_token)
+      localStorage.setItem("portal_guardian", JSON.stringify(guardian))
+      localStorage.setItem("portal_access_token", "mock_token_demo")
 
       router.push("/portal/alunos")
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          setError("E-mail ou senha incorretos.")
-        } else if (err.status === 403) {
-          setError(err.message)
-        } else {
-          setError("Erro ao fazer login. Tente novamente.")
-        }
-      } else {
-        setError("Não foi possível conectar ao servidor. Verifique se a API está rodando.")
-      }
-    } finally {
-      setLoading(false)
-    }
+    }, 600)
   }
 
   return (
