@@ -103,7 +103,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-[#F0F4FF]">
 
       {/* ── Desktop sidebar — fixed so it never gets clipped ── */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 shrink-0 flex-col bg-white shadow-xl md:flex lg:w-72">
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 shrink-0 flex-col overflow-hidden bg-white shadow-xl md:flex lg:w-72">
 
         {/* Logo */}
         <div className="shrink-0 flex flex-col items-center gap-2 border-b border-slate-100 px-4 py-5">

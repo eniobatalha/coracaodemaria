@@ -325,10 +325,10 @@ function DirectorDashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-6">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {kpis.map(({ label, value, color, sub }) => (
           <div key={label} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-[#C71F2D]/10 text-center">
-            <p className={`text-xl font-black ${color}`}>{value}</p>
+            <p className={`truncate text-lg font-black sm:text-xl ${color}`}>{value}</p>
             <p className="text-[10px] font-black text-slate-500 leading-none mt-0.5">{label}</p>
             <p className="text-[9px] text-slate-400">{sub}</p>
           </div>
@@ -337,7 +337,7 @@ function DirectorDashboard() {
 
       {/* Quick links */}
       <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-400">Acesso Rápido</h2>
-      <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-6">
+      <div className="mb-6 grid grid-cols-3 gap-3 lg:grid-cols-6">
         {quickLinks.map(({ label, href, bg, icon: Icon }) => (
           <Link key={href} href={href}
             className={`flex flex-col items-center justify-center gap-1.5 rounded-2xl ${bg} px-2 py-4 text-center text-xs font-black text-white shadow-sm hover:opacity-90 transition`}>
