@@ -187,7 +187,7 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
     <div className="min-h-screen bg-[#FFF5F5]">
 
       {/* ── Desktop sidebar ── */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 shrink-0 flex-col overflow-hidden bg-[#4A0010] shadow-xl md:flex lg:w-72">
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 grid grid-rows-[auto_auto_1fr_auto] overflow-hidden bg-[#4A0010] shadow-xl md:grid lg:w-72">
         <div className="shrink-0 flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
           <Image src="/images/logo-coracao-de-maria.png" alt="Coração de Maria"
             width={100} height={50} className="h-11 w-auto object-contain brightness-0 invert" />
@@ -204,7 +204,7 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
           </div>
         </div>
 
-        <nav className="no-scrollbar mt-3 flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-2">
+        <nav className="no-scrollbar mt-3 flex flex-col overflow-y-auto px-3 pb-2">
           <NavList />
         </nav>
 

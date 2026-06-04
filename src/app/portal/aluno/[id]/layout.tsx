@@ -103,7 +103,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-[#F0F4FF]">
 
       {/* ── Desktop sidebar — fixed so it never gets clipped ── */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 shrink-0 flex-col overflow-hidden bg-white shadow-xl md:flex lg:w-72">
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 grid grid-rows-[auto_auto_1fr_auto] overflow-hidden bg-white shadow-xl md:grid lg:w-72">
 
         {/* Logo */}
         <div className="shrink-0 flex flex-col items-center gap-2 border-b border-slate-100 px-4 py-5">
@@ -130,7 +130,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         </div>
 
         {/* Nav — min-h-0 forces flex shrink so footer always shows */}
-        <nav className="no-scrollbar mt-3 flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-2">
+        <nav className="no-scrollbar mt-3 flex flex-col overflow-y-auto px-3 pb-2">
           {navItems.map((item) => {
             const Icon   = item.icon
             const active = isActive(item.href)
