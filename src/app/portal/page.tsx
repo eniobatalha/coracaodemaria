@@ -1,10 +1,13 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Eye, EyeOff, LogIn } from "lucide-react"
-import { MOCK_GUARDIAN, MOCK_PASSWORD } from "@/lib/portal/mock-data"
+import { loginResponsavel } from "@/lib/api/auth"
+import { ApiError } from "@/lib/api/client"
+import { MOCK_GUARDIANS } from "@/lib/portal/mock-data"
 
 export default function PortalLoginPage() {
   const router = useRouter()
@@ -14,25 +17,49 @@ export default function PortalLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
-    setLoading(true)
 
-    setTimeout(() => {
-      if (!email || !password) {
-        setError("Preencha e-mail e senha.")
-        setLoading(false)
-        return
-      }
-      if (password !== MOCK_PASSWORD) {
-        setError("E-mail ou senha incorretos.")
-        setLoading(false)
-        return
-      }
-      sessionStorage.setItem("portal_guardian", JSON.stringify(MOCK_GUARDIAN))
+    if (!email || !password) {
+      setError("Preencha e-mail e senha.")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const session = await loginResponsavel(email, password)
+
+      // Resolve o guardian do mock pelo e-mail para manter o vínculo com os
+      // alunos (student.guardianIds) enquanto os dados ainda são locais.
+      const mockGuardian = Object.values(MOCK_GUARDIANS).find(
+        (g) => g.email.toLowerCase() === email.toLowerCase(),
+      )
+
+      // Armazena os dados de sessão compatíveis com o layout existente
+      const guardianToStore = mockGuardian
+        ? mockGuardian
+        : { id: session.id, name: session.name, email: session.email }
+
+      localStorage.setItem("portal_guardian", JSON.stringify(guardianToStore))
+      localStorage.setItem("portal_access_token", session.access_token)
+
       router.push("/portal/alunos")
-    }, 600)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setError("E-mail ou senha incorretos.")
+        } else if (err.status === 403) {
+          setError(err.message)
+        } else {
+          setError("Erro ao fazer login. Tente novamente.")
+        }
+      } else {
+        setError("Não foi possível conectar ao servidor. Verifique se a API está rodando.")
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -54,10 +81,7 @@ export default function PortalLoginPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={handleLogin}
-          className="rounded-3xl bg-white p-6 shadow-2xl"
-        >
+        <form onSubmit={handleLogin} className="rounded-3xl bg-white p-6 shadow-2xl">
           <div className="flex flex-col gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-bold text-[#071D5B]">
@@ -70,6 +94,7 @@ export default function PortalLoginPage() {
                 placeholder="seu@email.com"
                 className="w-full rounded-2xl border border-slate-200 bg-[#F0F4FF] px-4 py-3 text-[#071D5B] placeholder-slate-400 outline-none focus:border-[#0057D9] focus:ring-2 focus:ring-[#0057D9]/20"
                 autoComplete="email"
+                autoFocus
               />
             </div>
 
@@ -119,10 +144,14 @@ export default function PortalLoginPage() {
             </button>
           </div>
 
-          <p className="mt-5 text-center text-xs text-slate-400">
-            Demo: qualquer e-mail com senha{" "}
-            <span className="font-bold text-[#071D5B]">{MOCK_PASSWORD}</span>
-          </p>
+          <div className="mt-4 text-center">
+            <Link
+              href="/portal/recuperar-senha"
+              className="text-xs text-slate-400 hover:text-[#0057D9]"
+            >
+              Esqueceu sua senha?
+            </Link>
+          </div>
         </form>
 
         <p className="mt-6 text-center text-xs text-blue-200">

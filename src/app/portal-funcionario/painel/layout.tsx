@@ -17,6 +17,7 @@ import {
   Menu,
   MessageCircle,
   Users,
+  UserPlus,
   X,
 } from "lucide-react"
 import { TEACHER_CLASSES, loadChat, getAllTeacherStudents } from "@/lib/portal-funcionario/mock-data"
@@ -74,7 +75,8 @@ function buildNavItems(tipo: Employee["tipo"]): NavItem[] {
   if (tipo === "secretaria") {
     return [
       home,
-      { label: "Agenda Escolar", href: "/portal-funcionario/painel/secretaria/agenda",      icon: CalendarRange,     shortLabel: "Agenda"  },
+      { label: "Cadastros",     href: "/portal-funcionario/painel/secretaria/cadastros",   icon: UserPlus,          section: "GESTÃO",    shortLabel: "Cadastros" },
+      { label: "Agenda Escolar", href: "/portal-funcionario/painel/secretaria/agenda",      icon: CalendarRange,     section: "ESCOLAR",   shortLabel: "Agenda"    },
       { label: "Comunicados",    href: "/portal-funcionario/painel/secretaria/comunicados", icon: Bell,              shortLabel: "Avisos"  },
       { label: "Galeria",        href: "/portal-funcionario/painel/secretaria/galeria",     icon: GalleryHorizontal, shortLabel: "Galeria" },
       { label: "Financeiro",     href: "/portal-funcionario/painel/secretaria/financeiro",  icon: Landmark,          shortLabel: "Banco"   },
@@ -84,12 +86,13 @@ function buildNavItems(tipo: Employee["tipo"]): NavItem[] {
   if (tipo === "diretora") {
     return [
       home,
-      { label: "Dashboard Financeiro", href: "/portal-funcionario/painel/diretoria/financeiro",  icon: BarChart2,         section: "FINANCEIRO",  shortLabel: "Finanças" },
+      { label: "Cadastros",            href: "/portal-funcionario/painel/secretaria/cadastros",  icon: UserPlus,          section: "GESTÃO",     shortLabel: "Cadastros" },
+      { label: "Dashboard Financeiro", href: "/portal-funcionario/painel/diretoria/financeiro",  icon: BarChart2,         section: "FINANCEIRO", shortLabel: "Finanças"  },
       { label: "Retorno Bancário",     href: "/portal-funcionario/painel/secretaria/financeiro", icon: Landmark,          shortLabel: "Banco"    },
-      { label: "Agenda Escolar",       href: "/portal-funcionario/painel/secretaria/agenda",     icon: CalendarRange,     section: "SECRETARIA", shortLabel: "Agenda"   },
+      { label: "Agenda Escolar",       href: "/portal-funcionario/painel/secretaria/agenda",     icon: CalendarRange,     section: "SECRETARIA", shortLabel: "Agenda"    },
       { label: "Comunicados",          href: "/portal-funcionario/painel/secretaria/comunicados",icon: Bell,              shortLabel: "Avisos"   },
       { label: "Galeria",              href: "/portal-funcionario/painel/secretaria/galeria",    icon: GalleryHorizontal, shortLabel: "Galeria"  },
-      { label: "1º Ano A — Manhã",    href: "/portal-funcionario/painel/turma/1a-manha",        icon: Users,             section: "PEDAGÓGICO", shortLabel: "1A Manhã" },
+      { label: "1º Ano A — Manhã",    href: "/portal-funcionario/painel/turma/1a-manha",        icon: Users,             section: "PEDAGÓGICO", shortLabel: "1A Manhã"  },
       { label: "1º Ano B — Tarde",    href: "/portal-funcionario/painel/turma/1b-tarde",        icon: Users,             shortLabel: "1B Tarde" },
       { label: "Agenda Individual",    href: "/portal-funcionario/painel/agendas",              icon: ClipboardList,     shortLabel: "Agendas"  },
       { label: "Chat",                 href: "/portal-funcionario/painel/chat",                 icon: MessageCircle,     shortLabel: "Chat"     },
@@ -107,13 +110,13 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
   const teacherUnread = useTeacherUnread()
 
   useEffect(() => {
-    const data = sessionStorage.getItem("portal_funcionario")
+    const data = localStorage.getItem("portal_funcionario")
     if (!data) { router.replace("/portal-funcionario"); return }
     setEmployee(JSON.parse(data))
   }, [router])
 
   function handleLogout() {
-    sessionStorage.removeItem("portal_funcionario")
+    localStorage.removeItem("portal_funcionario")
     router.push("/portal-funcionario")
   }
 

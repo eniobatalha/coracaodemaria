@@ -21,7 +21,7 @@ export default function AlunosPage() {
   const [guardian, setGuardian] = useState<Guardian | null>(null)
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("portal_guardian")
+    const stored = localStorage.getItem("portal_guardian")
     if (!stored) {
       router.replace("/portal")
       return
@@ -30,7 +30,7 @@ export default function AlunosPage() {
   }, [router])
 
   function handleLogout() {
-    sessionStorage.removeItem("portal_guardian")
+    localStorage.removeItem("portal_guardian")
     router.push("/portal")
   }
 

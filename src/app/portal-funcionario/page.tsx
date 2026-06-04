@@ -1,37 +1,12 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Eye, EyeOff, LogIn } from "lucide-react"
-
-const MOCK_EMPLOYEES = [
-  {
-    id: "e1",
-    username: "rosa.paz",
-    nome: "Rosa Paz",
-    cargo: "Diretora",
-    tipo: "diretora" as const,
-    password: "123456",
-  },
-  {
-    id: "e2",
-    username: "luana.silveira",
-    nome: "Luana Silveira",
-    cargo: "Secretária",
-    tipo: "secretaria" as const,
-    password: "123456",
-  },
-  {
-    id: "e3",
-    username: "luana.marcela",
-    nome: "Luana Marcela",
-    cargo: "Professora",
-    tipo: "professor" as const,
-    turmas: ["1º Ano A — Manhã (F1)", "1º Ano B — Tarde (F1)"],
-    password: "123456",
-  },
-]
+import { loginFuncionario } from "@/lib/api/auth"
+import { ApiError } from "@/lib/api/client"
 
 export default function PortalFuncionarioLoginPage() {
   const router = useRouter()
@@ -41,31 +16,48 @@ export default function PortalFuncionarioLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+
+    if (!username || !password) {
+      setError("Preencha usuário e senha.")
+      return
+    }
+
     setLoading(true)
+    try {
+      const session = await loginFuncionario(username.toLowerCase().trim(), password)
 
-    setTimeout(() => {
-      if (!username || !password) {
-        setError("Preencha usuário e senha.")
-        setLoading(false)
-        return
-      }
-
-      const employee = MOCK_EMPLOYEES.find(
-        (emp) => emp.username === username.toLowerCase().trim() && emp.password === password
+      // Armazena no formato Employee (compatível com o painel/layout.tsx)
+      localStorage.setItem(
+        "portal_funcionario",
+        JSON.stringify({
+          id: session.id,
+          username: session.username,
+          nome: session.nome,
+          cargo: session.cargo,
+          tipo: session.tipo,
+        }),
       )
+      localStorage.setItem("portal_funcionario_token", session.access_token)
 
-      if (!employee) {
-        setError("Usuário ou senha incorretos.")
-        setLoading(false)
-        return
-      }
-
-      sessionStorage.setItem("portal_funcionario", JSON.stringify(employee))
       router.push("/portal-funcionario/painel")
-    }, 600)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setError("Usuário ou senha incorretos.")
+        } else if (err.status === 403) {
+          setError(err.message)
+        } else {
+          setError("Erro ao fazer login. Tente novamente.")
+        }
+      } else {
+        setError("Não foi possível conectar ao servidor. Verifique se a API está rodando.")
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -87,10 +79,7 @@ export default function PortalFuncionarioLoginPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={handleLogin}
-          className="rounded-3xl bg-white p-6 shadow-2xl"
-        >
+        <form onSubmit={handleLogin} className="rounded-3xl bg-white p-6 shadow-2xl">
           <div className="flex flex-col gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-bold text-[#071D5B]">
@@ -104,6 +93,7 @@ export default function PortalFuncionarioLoginPage() {
                 className="w-full rounded-2xl border border-slate-200 bg-[#FFF0F0] px-4 py-3 text-[#071D5B] placeholder-slate-400 outline-none focus:border-[#C71F2D] focus:ring-2 focus:ring-[#C71F2D]/20"
                 autoComplete="username"
                 autoCapitalize="none"
+                autoFocus
               />
             </div>
 
@@ -153,12 +143,14 @@ export default function PortalFuncionarioLoginPage() {
             </button>
           </div>
 
-          <p className="mt-5 text-center text-xs text-slate-400">
-            Demo:{" "}
-            <span className="font-bold text-[#071D5B]">luana.marcela</span>
-            {" "}com senha{" "}
-            <span className="font-bold text-[#071D5B]">123456</span>
-          </p>
+          <div className="mt-4 text-center">
+            <Link
+              href="/portal-funcionario/recuperar-senha"
+              className="text-xs text-slate-400 hover:text-[#C71F2D]"
+            >
+              Esqueceu sua senha?
+            </Link>
+          </div>
         </form>
 
         <p className="mt-6 text-center text-xs text-red-200">

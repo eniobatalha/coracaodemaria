@@ -59,7 +59,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const studentId = params.id as string
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("portal_guardian")
+    const stored = localStorage.getItem("portal_guardian")
     if (!stored) { router.replace("/portal"); return }
     setGuardian(JSON.parse(stored))
     const found = MOCK_STUDENTS.find((s) => s.id === studentId)
@@ -68,7 +68,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   }, [router, studentId])
 
   function handleLogout() {
-    sessionStorage.removeItem("portal_guardian")
+    localStorage.removeItem("portal_guardian")
     router.push("/portal")
   }
 

@@ -430,7 +430,7 @@ export default function PainelDashboard() {
   const [employee, setEmployee] = useState<Employee | null>(null)
 
   useEffect(() => {
-    const data = sessionStorage.getItem("portal_funcionario")
+    const data = localStorage.getItem("portal_funcionario")
     if (data) setEmployee(JSON.parse(data))
   }, [])
 

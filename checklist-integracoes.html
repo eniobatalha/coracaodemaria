@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Checklist de Integração — Coração de Maria</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ── Cabeçalho ── */
+    .header {
+      border-bottom: 3px solid #c0392b;
+      padding-bottom: 14px;
+      margin-bottom: 28px;
+    }
+    .header h1 {
+      font-size: 20pt;
+      font-weight: 700;
+      color: #c0392b;
+      letter-spacing: -0.3px;
+    }
+    .header .subtitle {
+      font-size: 9.5pt;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* ── Resumo de status ── */
+    .summary {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 9pt;
+      font-weight: 600;
+    }
+    .badge.green  { background: #d4edda; color: #1a5c2a; }
+    .badge.yellow { background: #fff3cd; color: #7c5a00; }
+    .badge.blue   { background: #d6eaf8; color: #1a4e78; }
+    .badge.red    { background: #fde8e8; color: #7c1a1a; }
+
+    /* ── Seções ── */
+    .section {
+      margin-bottom: 26px;
+    }
+    .section-title {
+      font-size: 12pt;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title.green  { background: #eafaf1; color: #1a5c2a; border-left: 4px solid #27ae60; }
+    .section-title.yellow { background: #fffbea; color: #7c5a00; border-left: 4px solid #f1c40f; }
+    .section-title.blue   { background: #eaf4fb; color: #1a4e78; border-left: 4px solid #2980b9; }
+    .section-title.red    { background: #fdf2f2; color: #7c1a1a; border-left: 4px solid #e74c3c; }
+
+    /* ── Itens de checklist ── */
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 5px 12px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      line-height: 1.5;
+    }
+    .item:nth-child(even) { background: #fafafa; }
+    .checkbox {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+      border: 2px solid #bbb;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .checkbox.checked  { background: #27ae60; border-color: #27ae60; }
+    .checkbox.partial  { background: #f1c40f; border-color: #d4ac0d; }
+    .checkbox.missing  { background: #e74c3c; border-color: #c0392b; }
+    .checkbox.api-only { background: #2980b9; border-color: #1a6fa6; }
+    .check-icon { color: #fff; font-size: 10px; font-weight: 800; }
+
+    .item-label { flex: 1; font-size: 10.5pt; }
+    .item-tag {
+      font-size: 8pt;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .tag-done    { background: #d4edda; color: #1a5c2a; }
+    .tag-mock    { background: #fff3cd; color: #7c5a00; }
+    .tag-api     { background: #d6eaf8; color: #1a4e78; }
+    .tag-missing { background: #fde8e8; color: #7c1a1a; }
+
+    /* ── Sub-grupos ── */
+    .subgroup-title {
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: #555;
+      margin: 10px 12px 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Tabela de endpoints ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 4px;
+      font-size: 9.5pt;
+    }
+    th {
+      background: #eaf4fb;
+      color: #1a4e78;
+      text-align: left;
+      padding: 6px 10px;
+      font-weight: 600;
+      border-bottom: 2px solid #2980b9;
+    }
+    td {
+      padding: 5px 10px;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f7fbff; }
+    .endpoint { font-family: 'Courier New', monospace; font-size: 9pt; color: #2c3e50; }
+
+    /* ── Nota de rodapé ── */
+    .footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd;
+      font-size: 8.5pt;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { padding: 20px; font-size: 10pt; }
+      .section { break-inside: avoid; }
+      .no-print { display: none; }
+    }
+
+    /* ── Botão de impressão ── */
+    .print-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 11pt;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .print-btn:hover { background: #a93226; }
+    @media print { .print-btn { display: none; } }
+  </style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Salvar como PDF</button>
+
+<!-- Cabeçalho -->
+<div class="header">
+  <h1>Checklist de Integração — Coração de Maria</h1>
+  <div class="subtitle">Status de integração frontend ↔ API REST &nbsp;|&nbsp; Gerado em Junho de 2026</div>
+</div>
+
+<!-- Resumo -->
+<div class="summary">
+  <span class="badge green">✅ Integrado com API real</span>
+  <span class="badge yellow">🟡 Frontend existe, dados ainda mock</span>
+  <span class="badge blue">🔧 API existe, página frontend não existe</span>
+  <span class="badge red">❌ Nem API nem frontend</span>
+</div>
+
+<!-- ───────────────────────────────── SEÇÃO 1 ── -->
+<div class="section">
+  <div class="section-title green">✅ Integrado — Frontend conectado à API real</div>
+
+  <div class="subgroup-title">Autenticação</div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">Login do Portal do Aluno (responsável) — e-mail + senha via JWT</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">Login do Portal do Funcionário — usuário + senha via JWT</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">Persistência de sessão via localStorage (compartilhada entre abas)</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+
+  <div class="subgroup-title">Secretaria — Cadastros</div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">CRUD de Professores — criar com login/senha, editar, desativar</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">CRUD de Turmas — criar, editar, vincular professor, desativar</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">CRUD de Responsáveis — criar, reenviar e-mail, alterar e-mail, desativar</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+  <div class="item">
+    <div class="checkbox checked"><span class="check-icon">✓</span></div>
+    <div class="item-label">CRUD de Alunos — criar, editar, desativar</div>
+    <span class="item-tag tag-done">DONE</span>
+  </div>
+</div>
+
+<!-- ───────────────────────────────── SEÇÃO 2 ── -->
+<div class="section">
+  <div class="section-title blue">🔧 API construída — página no frontend ainda não existe</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Endpoint</th>
+        <th>Situação / O que falta</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="endpoint">POST /auth/responsavel/confirmar-conta</td>
+        <td>Link no e-mail aponta para <code>/portal/confirmar-conta</code> — página não existe</td>
+      </tr>
+      <tr>
+        <td class="endpoint">POST /auth/responsavel/confirmar-troca-email</td>
+        <td>Link aponta para <code>/portal/confirmar-troca-email</code> — página não existe</td>
+      </tr>
+      <tr>
+        <td class="endpoint">POST /auth/responsavel/solicitar-recuperacao</td>
+        <td>"Esqueceu a senha?" aponta para <code>/portal/recuperar-senha</code> — página não existe</td>
+      </tr>
+      <tr>
+        <td class="endpoint">POST /auth/responsavel/redefinir-senha</td>
+        <td>Depende da página de recuperação (item acima)</td>
+      </tr>
+      <tr>
+        <td class="endpoint">POST /auth/funcionario/solicitar-recuperacao</td>
+        <td>"Esqueceu a senha?" aponta para <code>/portal-funcionario/recuperar-senha</code> — página não existe</td>
+      </tr>
+      <tr>
+        <td class="endpoint">POST /auth/funcionario/redefinir-senha</td>
+        <td>Depende da página de recuperação (item acima)</td>
+      </tr>
+      <tr>
+        <td class="endpoint">GET /auth/responsavel/perfil</td>
+        <td>Endpoint construído, nunca chamado pelo frontend</td>
+      </tr>
+      <tr>
+        <td class="endpoint">GET /auth/funcionario/perfil</td>
+        <td>Endpoint construído, nunca chamado pelo frontend</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ───────────────────────────────── SEÇÃO 3 ── -->
+<div class="section">
+  <div class="section-title yellow">🟡 Frontend existe — dados ainda vêm de mock (sessionStorage)</div>
+
+  <div class="subgroup-title">Portal do Aluno — tudo pós-login</div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Lista de alunos vinculados ao responsável</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Boletim (notas por disciplina)</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Frequência</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Agenda da Escola (eventos gerais)</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Agenda Individual do aluno</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Comunicados</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Chat responsável ↔ professor</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Galeria de fotos</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Financeiro — boletos</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Declarações (geração de PDF)</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+
+  <div class="subgroup-title">Portal do Funcionário — Professor</div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Lista de turmas e alunos</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Lançamento de notas</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Lançamento de frequência</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Agenda individual por aluno</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Chat professor ↔ responsável</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+
+  <div class="subgroup-title">Portal do Funcionário — Secretaria</div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Agenda Escolar (eventos)</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Comunicados</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Galeria de fotos</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Financeiro / retorno bancário CNAB — layout pendente de definição</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+
+  <div class="subgroup-title">Portal do Funcionário — Diretoria</div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">Dashboard financeiro com gráficos (Recharts)</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+  <div class="item">
+    <div class="checkbox partial"></div>
+    <div class="item-label">KPIs e inadimplência</div>
+    <span class="item-tag tag-mock">MOCK</span>
+  </div>
+</div>
+
+<!-- ───────────────────────────────── SEÇÃO 4 ── -->
+<div class="section">
+  <div class="section-title red">❌ Ainda não existe — nem API nem frontend</div>
+
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Página de confirmação de conta — responsável define senha via link no e-mail</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Página de confirmação de troca de e-mail</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Páginas de recuperação e redefinição de senha — Portal do Aluno</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Páginas de recuperação e redefinição de senha — Portal do Funcionário</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Configuração SMTP real — e-mails só aparecem no console em ambiente de desenvolvimento</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Vinculação responsável → aluno na tela de cadastro (select ainda vazio)</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Endpoints de conteúdo pedagógico — notas, frequência, agenda, comunicados, galeria, chat</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+  <div class="item">
+    <div class="checkbox missing"><span class="check-icon" style="color:#fff;">✕</span></div>
+    <div class="item-label">Endpoints financeiros — boletos, declarações, CNAB, dashboard diretoria</div>
+    <span class="item-tag tag-missing">FALTA</span>
+  </div>
+</div>
+
+<!-- Rodapé -->
+<div class="footer">
+  <span>Coração de Maria &nbsp;|&nbsp; Checklist de Integração Frontend ↔ API</span>
+  <span>Junho 2026</span>
+</div>
+
+</body>
+</html>
